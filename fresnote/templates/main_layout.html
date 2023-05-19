@@ -89,7 +89,6 @@
                     <a class="btn btn-sm btn-info text-white mb-4" role="button" onclick="addNewNotebook('{{ project }}');">New notebook</a>
                 </li>
                 <li>
-                    <!-- TODO: change notebook.search_func to projects.search with argument project-->
                     <a class="btn btn-sm btn-success text-white" role="button" href="{{ url_for('projects.search', project=project) }}">Search</a>
                 </li>
             </ul>
@@ -111,7 +110,6 @@
                 <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
                     <div class='col-md-12'>
                         <div class='row mb-2 d-flex justify-content-center'>
-                            <!-- TODO: id=notebookSection has been changed to projectSection-->
                             <h3 class="text-info" id="projectSection">Project: {{ project }}</h3>
                         </div>
                     </div>
@@ -149,7 +147,7 @@
         <script src="{{url_for('static', filename='js/quill.js')}}"></script>
 
         <!-- MY JS -->
-        <script src="{{ url_for('section.protected', filename='js/fresnote.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/fresnote.js') }}"></script>
     
         <!-- JAVASCRIPT FOR CONTROLING SIDEBAR -->
         <script>

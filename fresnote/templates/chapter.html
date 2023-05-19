@@ -32,7 +32,7 @@
                     <hr>
 
                     <div class="mb-4 ml-2">
-                        <h4>Change order of sections</h4>
+                        <h4>Add/Change order of sections</h4>
                         <div>
                             <a id="editSectionOrderButton" class="btn btn-sm btn-outline-info mr-2 mb-4 text-white pb-0 pt-1 text-info" role="button" onclick="editSectionOrder();">Edit</a>
                             <a id="saveSectionOrderButton" class="btn btn-sm btn-outline-success mb-4 text-success pb-0 pt-1 text-info disabled" role="button" onclick="saveSectionOrder('{{ notebook }}', '{{ chapterName }}');">Save</a>
@@ -74,7 +74,7 @@
 
             </div>
 
-            <!-- sections is a list of dictionaries -->
+        <!-- sections is a list of dictionaries -->
         <div id="sectionsArea" class="container-fluid">
             {% if data['sections']|length > 0 %}
                 {% for section in data['sections'] %}
@@ -133,9 +133,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-
-
 
                                 <!-- Content -->
                                 {% if section['folded'] == 0 %}

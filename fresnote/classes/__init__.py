@@ -12,16 +12,76 @@ import re
 
 class Projects:
 
-    def __init__(self, config):
+    def __init__(self, configPath):
+        self.configPath = configPath
         self.config = configparser.ConfigParser()
-        self.config.read(config)
+        self.config.read(self.configPath)
         self.projectsList = self.config.sections()
 
+    def create_project(self, projectPath):
+        projectPath = Path(projectPath)
+
+        project = projectPath.name
+        docsPath = projectPath.joinpath('docs')
+        uploadsPath = projectPath.joinpath('uploads')
+        sectionsPath = projectPath.joinpath('sections')
+
+        projectPath.mkdir(parents=True)
+        docsPath.mkdir(parents=True)
+        uploadsPath.mkdir(parents=True)
+        sectionsPath.mkdir(parents=True)
+        dbPath = projectPath.joinpath('project.db')
+
+        self.config[project] = {
+                'path': projectPath,
+                'docs': docsPath,
+                'uploads': uploadsPath,
+                'sections': sectionsPath,
+                'db': dbPath
+                }
+
+        with open(self.configPath,"w") as outf:
+            self.config.write(outf)
+
+        with contextlib.closing(sqlite3.connect(dbPath)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                CREATE TABLE sections(
+                id INTEGER PRIMARY KEY,
+                section TEXT,
+                tags TEXT,
+                content TEXT,
+                folded INTEGER,
+                creationDate TEXT
+                )
+                """
+
+                c.execute(query)
+                conn.commit()
+
+                query = """
+                CREATE TABLE notebooks(
+                id INTEGER PRIMARY KEY,
+                notebook TEXT,
+                chapter TEXT,
+                sections TEXT
+                )
+                """
+
+                c.execute(query)
+                conn.commit()
 
 
-class Notebook(Projects):
 
-    def __init__(self, project):
+
+
+
+class Notebook:
+
+    def __init__(self, project, config):
+        self.config = configparser.ConfigParser()
+        self.config.read(config)
+
         self.project = project
         self.projectPath     = Path(self.config.get(self.project, 'path'))
         self.projectDocs     = Path(self.config.get(self.project, 'docs'))

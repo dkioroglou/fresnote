@@ -1,3 +1,2 @@
 [console_scripts]
 fresnote = fresnote.cli.script:main
-

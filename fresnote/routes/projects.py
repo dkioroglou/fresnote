@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, flash, jsonify, redirect,
 from flask import current_app
 import subprocess
 import os
+from pathlib import Path
 from fresnote.classes import Projects
 from fresnote.classes import Notebook
 
@@ -14,6 +15,27 @@ def index():
     return render_template('index.html', data={'projects': projects.projectsList})
 
 
+@projects.route('/create', methods=['POST'])
+def create():
+    config = current_app.config['projects_config']
+    projects = Projects(config)
+
+    projectPath = request.form.get("newProjectPath")
+    if Path(projectPath).exists():
+        flash('Project path already exists.', 'danger')
+        return redirect(url_for("projects.index"))
+
+    try:
+        projects.create_project(projectPath)
+    except Exception as error:
+        print(error)
+        flash('Error while creating project.', 'danger')
+        return redirect(url_for("projects.index"))
+
+    project = Path(projectPath).name
+    return redirect(url_for("projects.load", project=project))
+
+
 @projects.route('/select', methods=['POST'])
 def select():
     project = request.form.getlist('project')[0]
@@ -23,27 +45,11 @@ def select():
 @projects.route('/load/<project>', methods=['GET'])
 def load(project):
     config = current_app.config['projects_config']
-    projects = Projects(config)
-    notes = Notebook(project)
-
+    notes = Notebook(project, config)
     sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
-    return render_template('project.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+    return render_template('project.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project, notebook=None, chapter=None)
 
 
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/create_new_project/<project>', methods=['GET'])
-# def create_new_project_func(project):
-#     notes = Notebook(project)
-#     try:
-#         notes.create_new_project()
-#     except Exception:
-#         flash('Error while creating project.', 'danger')
-#         return redirect(url_for("index.index_func"))
-#     flash('project created successfully', 'success')
-#     return redirect(url_for("index.index_func"))
 #
 #
 #
@@ -149,10 +155,11 @@ def load(project):
 #     return '', 200
 #
 #
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
+
+@projects.route('/<project>/search', methods=['GET', 'POST'])
+def search(project):
+    return "This is search bar"
+
 # @project.route('/<project>/search', methods=['GET', 'POST'])
 # def search_func(project):
 #     notes = project(project)
@@ -195,10 +202,11 @@ def load(project):
 #         return render_template('view_sections.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
 #
 #
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
+
+@projects.route('/upload_file/<project>', methods=['POST'])
+def upload_file_func(project):
+    return "Upload file to project"
+
 # @project.route('/upload_file/<project>/<project>/<chapter>', methods=['POST'])
 # def upload_file_func(project, project, chapter):
 #     notes = project(project)

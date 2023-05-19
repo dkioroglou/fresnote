@@ -1,0 +1,67 @@
+<div class='col-md-12'>
+    <div class='row mb-2'>
+        <!--TODO: change javascript function editProject to editNotebook-->
+        <a id="editNotebookButton" class="btn btn-sm btn-outline-info ml-4 mr-2 text-white pb-0 pt-1 text-info" role="button" onclick="editNotebook();">Edit</a>
+        <!--TODO: change javascript function saveProject to saveNotebook-->
+        <a id="saveNotebookButton" class="btn btn-sm btn-outline-success float-right mr-2 pb-0 pt-1 disabled text-success" role="button" onclick="saveNotebook('{{ project }}', '{{ notebook }}');">Save</a>
+        <h1 id="notebookSection">{{ notebook }}</h1>
+    </div>
+
+    <div class='row'>
+        <a id="editChapterButton" class="btn btn-sm btn-outline-info ml-4 mr-2 text-info pb-0 pt-1" role="button" onclick="editChapter();">Edit</a>
+        <!--TODO: include the argument project to saveChapter javascript function-->
+        <a id="saveChapterButton" class="btn btn-sm btn-outline-success text-success float-right mr-2 pb-0 pt-1 disabled" role="button" onclick="saveChapter('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Save</a>
+        <h1 id="chapterSection">{{ chapter }}</h1>
+    </div>
+
+    <button class="col-1 btn btn-sm btn-outline-secondary ml-2 mr-2 mb-4 text-white pb-0 pt-1 text-info" type="button" data-toggle="collapse" data-target="#sectionsOrderSection" aria-expanded="false" aria-controls="sectionsOrderSection">
+        Panel
+    </button>
+
+    <div class="collapse" id="sectionsOrderSection">
+
+        <hr>
+
+        <div class="mb-4 ml-2">
+            <h4>Add/Change order of sections</h4>
+            <div>
+                <a id="editSectionOrderButton" class="btn btn-sm btn-outline-info mr-2 mb-4 text-white pb-0 pt-1 text-info" role="button" onclick="editSectionOrder();">Edit</a>
+                <a id="saveSectionOrderButton" class="btn btn-sm btn-outline-success mb-4 text-success pb-0 pt-1 text-info disabled" role="button" onclick="saveSectionOrder('{{ notebook }}', '{{ chapterName }}');">Save</a>
+
+            </div>
+            <div id="sectionsOrderText">
+                {% if data['sections']|length > 0 %}
+                    {% for section in data['sections'] %}
+                        {{ section['ID'] }}-{{ section['section'] }} <br>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <hr>
+
+        <div class='mb-4 ml-2'>
+            <h4>Upload file(s) to notebook</h4>
+            <form action="{{ url_for('projects.upload_file', project=project) }}" method="POST", enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="file" name="uploaded_files_for_project" class="form-control-file" id="{{ project }}UploadFile" multiple>
+                    <button type="submit" class="btn btn-success text-white mb-4 mt-2">Submit</button>
+                </div>
+            </form>
+        </div>
+
+        <hr>
+
+        <div class='mb-4 ml-2'>
+            <h4>Delete notebook or chapter</h4>
+            <!--TODO: rename javascript deleteProject to deleteNotebook-->
+            <a id="deleteNotebookButton" class="btn btn-sm btn-outline-danger mb-4 text-danger" role="button" onclick="deleteNotebook('{{ project }}', '{{ notebook }}');">Delete notebook: {{ notebook }}</a>
+            <br>
+            <a id="deleteChapterButton" class="btn btn-sm btn-outline-danger mb-4 text-danger" role="button" onclick="deleteChapter('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Delete chapter: {{ chapter }}</a>
+        </div>
+
+        <hr>
+
+    </div>
+
+</div>

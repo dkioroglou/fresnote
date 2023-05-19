@@ -1,0 +1,41 @@
+{% extends "main_layout.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron jumbotron-fluid d-flex align-items-center">
+    <div class="container">
+        <div class='col-md-12 col-sm-12' style="float: none; margin: 0 auto;">
+            {% if not notebook %}
+                <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
+                    <div class='col-md-12'>
+                        <h1>Choose notebook</h1>
+                    </div>
+                </div>
+            {% elif sections|length == 0%}
+                {% include 'project_panel.html' %}
+
+                <div class='row'>
+                    <div class='col-md-12'>
+                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}');">Add new section</button>
+                    </div>
+                </div>
+
+            {% else %}
+                {% include 'project_panel.html' %}
+
+                {% include 'project_notebook_sections.html' %}
+
+                <div class='row'>
+                    <div class='col-md-12'>
+                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}');">Add new section</button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
