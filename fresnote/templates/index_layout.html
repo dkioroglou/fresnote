@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+        <!-- BOOTSTRAP CSS -->
+        <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.css')}}">
+
+        <!-- BOOTSTRAP-SELECT CSS -->
+        <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap-select.min.css')}}">
+
+        <!-- TOASTR CSS -->
+        <link rel="stylesheet" href="{{url_for('static', filename='css/toastr.css')}}">
+
+        <!-- CHOICES CSS -->
+        <!-- <link rel="stylesheet" href="{{url_for('static', filename='css/choices.css')}}"> -->
+
+
+        <!-- FONTAWESOME CSS -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
+
+        <!-- FRESNOTE CSS and JS -->
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/fresnote.css') }}">
+        <script src="{{ url_for('static', filename='js/fresnote.js') }}"></script>
+
+        <title>fresnote</title>
+    </head>
+
+    <body>
+
+
+        <header class="site-header">
+          {% block header %}{% endblock header %}
+        </header>
+
+        {% include 'messageArea.html' %}
+
+
+<div class="wrapper">
+
+        <!-- Page Content  -->
+        <div id="content">
+            {% block content %}{% endblock %}
+        </div>
+</div>
+
+
+        <!--JQUERY JS -->
+        <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> -->
+        <script src="{{url_for('static', filename='js/jquery-3.6.0.min.js')}}"></script>
+
+        <!-- TOASTR JS -->
+        <script src="{{url_for('static', filename='js/toastr.min.js')}}"></script>
+
+        <!-- BOOTSTRAP JS -->
+        <script src="{{url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
+
+        <!-- BOOTSTRAP-SELECT JS -->
+        <script src="{{url_for('static', filename='js/bootstrap-select.min.js')}}"></script>
+
+        <!-- CHOICES JS -->
+        <script src="{{url_for('static', filename='js/choices.min.js')}}"></script>
+
+    
+        <!-- <script> -->
+        <!--     $(document).ready(function(){ -->
+        <!---->
+        <!--         var multipleCancelButton = new Choices('#projectSelector', { -->
+        <!--         removeItemButton: true, -->
+        <!--         maxItemCount:20, -->
+        <!--         searchResultLimit:20, -->
+        <!--         renderChoiceLimit:20 -->
+        <!--         }); -->
+        <!--     }); -->
+        <!-- </script> -->
+
+        <script>
+            $(document).ready(function(){
+                $("#myModal").modal('show');
+            });
+        </script>
+
+    </body>
+</html>

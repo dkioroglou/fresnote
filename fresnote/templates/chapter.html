@@ -1,0 +1,182 @@
+{% extends "main_layout.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class='col-md-12 col-sm-12' style="float: none; margin: 0 auto;">
+
+            <div class='col-md-12'>
+                <div class='row mb-2'>
+                    <a id="editProjectButton" class="btn btn-sm btn-outline-info ml-4 mr-2 text-white pb-0 pt-1 text-info" role="button" onclick="editProject();">Edit</a>
+                    <a id="saveProjectButton" class="btn btn-sm btn-outline-success float-right mr-2 pb-0 pt-1 disabled text-success" role="button" onclick="saveProject('{{ notebook }}', '{{ projectName }}');">Save</a>
+                    <h1 id="projectSection">{{ projectName }}</h1>
+                </div>
+
+                <div class='row'>
+                    <a id="editChapterButton" class="btn btn-sm btn-outline-info ml-4 mr-2 text-info pb-0 pt-1" role="button" onclick="editChapter();">Edit</a>
+                    <a id="saveChapterButton" class="btn btn-sm btn-outline-success text-success float-right mr-2 pb-0 pt-1 disabled" role="button" onclick="saveChapter('{{ notebook }}', '{{ chapterName }}');">Save</a>
+                    <h1 id="chapterSection">{{ chapterName }}</h1>
+                </div>
+
+                <button class="col-1 btn btn-sm btn-outline-secondary ml-2 mr-2 mb-4 text-white pb-0 pt-1 text-info" type="button" data-toggle="collapse" data-target="#sectionsOrderSection" aria-expanded="false" aria-controls="sectionsOrderSection">
+                    Panel
+                </button>
+
+
+                <div class="collapse" id="sectionsOrderSection">
+
+                    <hr>
+
+                    <div class="mb-4 ml-2">
+                        <h4>Change order of sections</h4>
+                        <div>
+                            <a id="editSectionOrderButton" class="btn btn-sm btn-outline-info mr-2 mb-4 text-white pb-0 pt-1 text-info" role="button" onclick="editSectionOrder();">Edit</a>
+                            <a id="saveSectionOrderButton" class="btn btn-sm btn-outline-success mb-4 text-success pb-0 pt-1 text-info disabled" role="button" onclick="saveSectionOrder('{{ notebook }}', '{{ chapterName }}');">Save</a>
+
+                        </div>
+                        <div id="sectionsOrderText">
+                            {% if data['sections']|length > 0 %}
+                                {% for section in data['sections'] %}
+                                    {{ section['ID'] }}-{{ section['section'] }} <br>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class='mb-4 ml-2'>
+                        <h4>Upload file(s) to notebook</h4>
+                        <form action="{{ url_for('notebook.upload_file_func', notebook=notebook, project=projectName, chapter=chapterName) }}" method="POST", enctype="multipart/form-data">
+                            <div class="form-group">
+                                <input type="file" name="uploaded_files_for_project" class="form-control-file" id="{{ projectName }}UploadFile" multiple>
+                                <button type="submit" class="btn btn-success text-white mb-4 mt-2">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <hr>
+
+                    <div class='mb-4 ml-2'>
+                        <h4>Delete project or chapter</h4>
+                        <a id="deleteProjectButton" class="btn btn-sm btn-outline-danger mb-4 text-danger" role="button" onclick="deleteProject('{{ notebook }}', '{{ projectName }}');">Delete topic: {{ projectName }}</a>
+                        <br>
+                        <a id="deleteChapterButton" class="btn btn-sm btn-outline-danger mb-4 text-danger" role="button" onclick="deleteChapter('{{ notebook }}', '{{ projectName }}', '{{ chapterName }}');">Delete chapter: {{ chapterName }}</a>
+                    </div>
+
+                    <hr>
+
+                </div>
+
+            </div>
+
+            <!-- sections is a list of dictionaries -->
+        <div id="sectionsArea" class="container-fluid">
+            {% if data['sections']|length > 0 %}
+                {% for section in data['sections'] %}
+                    <div class='row mb-4'>
+
+                            <div id="chapterSectionCard_{{ section['ID'] }}" class='col-md-12 chapterSectionCard'>
+
+                                <!-- Title -->
+                                <div id="title_section_{{ section['ID'] }}" contenteditable="false">
+
+                                    <!-- Fold Button -->
+                                    <a class="btn btn-sm btn-outline-secondary float-right text-dark" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ notebook }}','{{ section['ID'] }}');">
+                                        Fold
+                                    </a>
+
+                                    <!-- Info Button -->
+                                    <a class="btn btn-sm btn-outline-secondary float-right mr-2 text-dark" role="button" data-toggle="collapse" data-target="#infoSection_{{ section['ID'] }}" aria-expanded="false" aria-controls="infoSection_{{ section['ID'] }}">
+                                        Info
+                                    </a>
+
+
+                                    <!-- Save Button -->
+                                    <a id="saveTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-success float-right mr-2 disabled text-success" role="button" onclick="saveTitle('{{ notebook }}', '{{ section['ID'] }}');">Save</a>
+
+                                    <!-- Edit Button -->
+                                    <a id="editTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 text-info" role="button" onclick="editTitle({{ section['ID'] }});">Edit</a>
+
+                                    <h4 id="title_{{ section['ID'] }}">{{ section['section']|safe }}</h4>
+                                </div>
+
+
+                                <!-- Section info -->
+                                <div class="collapse" id="infoSection_{{ section['ID'] }}">
+
+                                    <!-- Delete Button -->
+                                    <a id="deleteTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-danger float-left ml-2 mr-2 mt-2 text-danger" role="button" onclick="deleteSection('{{ notebook }}', '{{ section['ID'] }}');">Delete section</a>
+
+                                    <!-- ID section -->
+                                    <div class="card-header tagSection">
+                                        Section ID: {{ section['ID'] }}
+                                    </div>
+
+                                    <!-- Tags -->
+                                    <div class="card-header tagSection" id="tags_section_{{ section['ID'] }}"  contenteditable="false">
+
+                                        <!-- Save Button -->
+                                        <a id="saveTagsButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-success text-success float-right disabled pt-0 pb-0" role="button" onclick="saveTags('{{ notebook }}', '{{ section['ID'] }}');">Save</a>
+
+                                        <!-- Edit Button -->
+                                        <a id="editTagsButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 pt-0 pb-0 text-info" role="button" onclick="editTags('{{ notebook }}', '{{ section['ID'] }}');">Edit</a>
+
+                                        <div id="tags_{{ section['ID'] }}">
+                                            {% for tag in section['tags']%}
+                                                <span class="badge badge-warning">{{ tag }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+                                <!-- Content -->
+                                {% if section['folded'] == 0 %}
+                                    <div class='collapse show' id="collapse_content_section_{{ section['ID'] }}">
+                                {% else %}
+                                    <div class='collapse' id="collapse_content_section_{{ section['ID'] }}">
+                                {% endif %}
+
+                                        <div class='card-body' id="content_section_{{ section['ID'] }}"  contenteditable="false">
+                                            <!-- Edit Button -->
+                                            <a id="editContentButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 text-info" role="button" onclick="editContent('{{ notebook }}', '{{ section['ID'] }}');">Edit</a>
+
+                                            <div id="content_{{ section['ID'] }}">
+                                                {{ section['content']|safe }}
+                                            </div>
+
+                                            <br>
+
+                                            <!-- Fold Button -->
+                                            <a id="foldContentButton_{{ section['ID'] }}" class="btn btn-sm btn-secondary float-right" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ notebook }}','{{ section['ID'] }}');">
+                                                Fold
+                                            </a>
+                                        </div>
+                                    </div>
+
+                            </div> <!-- section card -->
+                    </div> <!-- row mb-4 -->
+                {% endfor %}
+            {% endif %}
+        </div>
+            
+            <div class='row'>
+                <div class='col-md-12'>
+                    <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ notebook }}');">Add new section</button>
+                </div>
+            </div>
+
+        </div> <!-- col -->
+    </div> <!-- container fluid-->
+
+
+
+{% endblock %}
+

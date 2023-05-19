@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
+        <meta name="description" content="A diagram holding groups that incrementally grow the diagram as groups are expanded."/> 
+        <link rel="stylesheet" href="{{url_for('static', filename='gojssrc/style.css')}}"> 
+        <script src="{{url_for('static', filename='gojssrc/go.js')}}"></script>
+        <script src="{{url_for('static', filename='gojssrc/HyperlinkText.js')}}"></script>
+        <title>Diagram</title>
+
+        <script id="code">
+            function init() {
+                const $ = go.GraphObject.make;
+                myDiagram = 
+                    $(go.Diagram, "myDiagramDiv",
+                        {
+                            // have mouse wheel events zoom in and out instead of scroll up and down
+                            "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom,
+                            "clickCreatingTool.archetypeNodeData": { key:"new", color:"white", img: "", imgcaption: "", imgwidth: 5, imgheight: 5, "url":"", "pic":"", "picwidth":10, "picheight":10},
+                            "InitialLayoutCompleted": e => showIncremental("InitialLayout"),
+                            "ModelChanged": e => {
+                                if (e.isTransactionFinished) {
+                                    // this records each Transaction as a JSON-format string
+                                    showIncremental(myDiagram.model.toIncrementalJson(e));
+                                }
+                            },
+                            "toolManager.hoverDelay": 100,
+                            "toolManager.toolTipDuration": 50000
+                        }
+                    );
+
+
+
+
+                // when the document is modified, add a "*" to the title and enable the "Save" button
+                myDiagram.addDiagramListener("Modified", e => {
+                    var button = document.getElementById("SaveButton");
+                    if (button) button.disabled = !myDiagram.isModified;
+                    var idx = document.title.indexOf("*");
+                    if (myDiagram.isModified) {
+                        if (idx < 0) document.title += "*";
+                    } else {
+                        if (idx >= 0) document.title = document.title.slice(0, idx);
+                    }
+                });
+
+
+
+                // Define node template
+                myDiagram.nodeTemplate = 
+                    $(go.Node, "Auto",
+                        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                        $(go.Shape, "RoundedRectangle", 
+                            {
+                            fill: "white",
+                            portId: "",
+                            fromLinkable: true,
+                            fromLinkableSelfNode: true,
+                            fromLinkableDuplicates: true,
+                            toLinkable: true,
+                            toLinkableSelfNode: true,
+                            toLinkableDuplicates: true,
+                            cursor: "pointer"
+                            },
+                            new go.Binding("fill", "color") // Bind fill to be color given in nodeDataArray
+                        ),
+                        $(go.TextBlock, "text",
+                            {
+                                margin: new go.Margin(0, 20, 0, 20),
+                                editable: true
+                            }, 
+                            new go.Binding("text", "key").makeTwoWay() // Bind text to be the key given in nodeDataArray
+                        ),
+                        $(go.Panel, "Vertical",
+                            $(go.Picture, { margin: 3, desiredSize: new go.Size(10,10) },
+                                new go.Binding("source", "pic"),
+                                new go.Binding("width", "picwidth"), 
+                                new go.Binding("height", "picheight")
+                            )
+                        ),
+                        // Indicator of URL
+                        $(go.TextBlock, "U",
+                            {
+                                visible: false,
+                                font: "7pt serif",
+                                background: "red", 
+                                alignment: go.Spot.TopLeft
+                            },
+                            new go.Binding("visible", "url", function(t) { return !!t; })
+                        ),
+                        $("TreeExpanderButton",
+                            {
+                                alignment: go.Spot.Right,
+                                alignmentFocus: go.Spot.Left
+                            }
+                        ),
+                        $("HyperlinkText",
+                            function(node) { return node.data.url; },
+                            function(node) { return ""; },
+                            { margin: 1 }
+                        ),
+                        { // this tooltip shows image and caption text
+                            toolTip:
+                            $("ToolTip",
+                                $(go.Panel, "Vertical",
+                                    $(go.Picture, { margin: 3 },
+                                        new go.Binding("source", "img"), 
+                                        new go.Binding("width", "imgwidth"), 
+                                        new go.Binding("height", "imgheight")
+                                    ),
+                                    $(go.TextBlock, { margin: 3 },
+                                        new go.Binding("text", "imgcaption")
+                                    )
+                                )
+                            )  // end Adornment
+                        }
+                    );
+
+
+
+              // unlike the normal selection Adornment, this one includes a Button
+              myDiagram.nodeTemplate.selectionAdornmentTemplate =
+                $(go.Adornment, "Spot",
+                  $(go.Panel, "Auto",
+                    $(go.Shape, { fill: null, stroke: "blue", strokeWidth: 2 }),
+                    $(go.Placeholder)  // this represents the selected Node
+                  ),
+                  // the button to create a "next" node, at the top-right corner
+                  $("Button",
+                    {
+                      alignment: go.Spot.TopRight,
+                      click: addNodeAndLink  // this function is defined below
+                    },
+                    $(go.Shape, "PlusLine", { desiredSize: new go.Size(6, 6) })
+                  ) // end button
+                ); // end Adornment
+
+
+
+
+              // clicking the button inserts a new node to the right of the selected node,
+              // and adds a link to that new node
+              function addNodeAndLink(e, obj) {
+                var adorn = obj.part;
+                e.handled = true;
+                var diagram = adorn.diagram;
+                diagram.startTransaction("Add State");
+
+                // get the node data for which the user clicked the button
+                var fromNode = adorn.adornedPart;
+                var fromData = fromNode.data;
+                // create a new "State" data object, positioned off to the right of the adorned Node
+                var toData = { 
+                    key: "new"
+                };
+                var p = fromNode.location.copy();
+                p.x += 200;
+                toData.color = "white";
+                toData.img = "";
+                toData.imgcaption = "";
+                toData.imgwidth = 5;
+                toData.imgheight = 5;
+                toData.url = "";
+                toData.pic = "";
+                toData.picwidth = 10;
+                toData.picheight = 10;
+                toData.loc = go.Point.stringify(p);  // the "loc" property is a string, not a Point object
+                // add the new node data to the model
+                var model = diagram.model;
+                model.addNodeData(toData);
+
+                // create a link data from the old node data to the new node data
+                var linkdata = {
+                  from: model.getKeyForNodeData(fromData),  // or just: fromData.id
+                  to: model.getKeyForNodeData(toData),
+                  text: "..."
+                };
+                // and add the link data to the model
+                model.addLinkData(linkdata);
+
+                // select the new Node
+                var newnode = diagram.findNodeForData(toData);
+                diagram.select(newnode);
+
+                diagram.commitTransaction("Add State");
+
+                // if the new node is off-screen, scroll the diagram to show the new node
+                diagram.scrollToRect(newnode.actualBounds);
+              }
+
+
+
+
+
+                // Define link template
+                myDiagram.linkTemplate =
+                    $(go.Link,
+                        {
+                            reshapable: true,
+                            relinkableFrom: true, 
+                            relinkableTo: true,
+                            routing: go.Link.AvoidsNodes,
+                            fromSpot: go.Spot.AllSides,
+                            toSpot: go.Spot.AllSides
+
+                        },
+                        new go.Binding("points").makeTwoWay(),
+                        $(go.Shape,
+                            new go.Binding("stroke", "color") // Bind stroke to be the color given in linkDataArray
+                        ),
+                        $(go.Shape, {toArrow:"Standard", stroke:null},
+                            new go.Binding("fill", "color") // Bind fill to be the follor given in linkDataArray
+                        ),
+                        $(go.TextBlock, "...",  // the label text
+                          {
+                            font: "10pt helvetica, arial, sans-serif",
+                            stroke: "black",
+                            margin: 4,
+                            editable: true,  // editing the text automatically updates the model data
+                            segmentOffset: new go.Point(0, -10),
+                            segmentOrientation: go.Link.OrientUpright
+                          },
+                          new go.Binding("text", "text").makeTwoWay()
+                        )
+                    );
+
+
+                // Get json for filename
+                var textArea = document.getElementById("mySavedModel");
+                const request = new XMLHttpRequest();
+                request.open('GET', "{{filename}}", true);
+                request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                request.send(null);
+                request.onload = function() {
+                    textArea.value = request.responseText;
+                    // read in the JSON-format data from the "mySavedModel" element
+                    load();
+                };
+            }
+
+            function showIncremental(str) {
+              // show the last transaction as an incremental update in JSON-formatted text
+              var element = document.getElementById("myTransaction");
+              // don't show anything upon the initial layout
+              if (element.value === "InitialLayout") str = "";
+              element.value = str;
+            }
+
+
+
+            // Show the diagram's model in JSON format
+            function save() {
+              document.getElementById("mySavedModel").value = myDiagram.model.toJson();
+              myDiagram.isModified = false;
+              showIncremental("");
+            }
+    
+
+
+            function load() {
+              var model = go.Model.fromJson(document.getElementById("mySavedModel").value);
+              // establish GraphLinksModel functions:
+              // node data id's are odd numbers
+              model.makeUniqueKeyFunction = (model, data) => {
+                var i = model.nodeDataArray.length * 2 + 1;
+                while (model.findNodeDataForKey(i) !== null) i += 2;
+                data.id = i;  // assume Model.nodeKeyProperty === "id"
+                return i;
+              };
+              // link data id's are even numbers
+              model.makeUniqueLinkKeyFunction = (model, data) => {
+                var i = model.linkDataArray.length * 2 + 2;
+                while (model.findLinkDataForKey(i) !== null) i += 2;
+                data.id = i;  // assume GraphLinksModel.linkKeyProperty === "id"
+                return i;
+              };
+              myDiagram.model = model;
+              showIncremental("");
+            }
+
+
+          function store_diagram(notebook) {
+              var textArea = document.getElementById("mySavedModel");
+              var diagramData = JSON.parse(textArea.value)
+
+              const request = new XMLHttpRequest();
+              request.open('POST', '/'+notebook+'/store_diagram', true);
+              request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+              request.send(JSON.stringify({
+                                  'filename': "{{filename}}",
+                                  'diagram': diagramData
+              }));
+
+            }
+
+            window.addEventListener('DOMContentLoaded', init);
+        </script>
+    </head>
+
+    <!-- <body onload=init()> -->
+    <body id="sample">
+        <div id="myDiagramDiv" style="background-color: whitesmoke; border: 1px solid black; width: 100%; height: 1200px; position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); cursor: auto; font: 10pt helvetica, arial, sans-serif;"> </div>
+        <textarea id="myTransaction" style="width:100%;height:200px"></textarea>
+        <button id="SaveButton" onclick="save()">Insert state to textArea</button>
+        <button onclick="load()">(Re)load</button>
+        <button onclick="store_diagram('{{ notebook }}')">Store diagram</button>
+        Diagram Model saved in JSON format:
+        <br>
+
+          <!--Area of nodes--> 
+          <textarea id="mySavedModel" style="width:100%;height:300px">
+              {}
+          </textarea>
+
+    </body>
+</html>

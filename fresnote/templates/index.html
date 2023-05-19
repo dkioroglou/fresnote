@@ -1,0 +1,36 @@
+{% extends "index_layout.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron jumbotron-fluid d-flex align-items-center">
+    <div class="container">
+        <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
+            <div class='col-md-12'>
+                <h1 class='display-4'>Load or create project</h1>
+            </div>
+
+            <div class='col-md-12'>
+                <form action="{{ url_for('projects.select') }}" method="POST" role="form">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <select name='project' class="selectpicker" data-max-options="5" data-live-search="true" data-width="100%">
+                                {% for project in data['projects'] %}
+                                    <option data-tokens="{{ project }}">{{ project }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn col-2 btn-success text-white mb-4">Load</button>
+                </form>
+
+                <button type="submit" class="btn col-2 btn-warning text-white mb-4">Create</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

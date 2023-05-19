@@ -1,0 +1,301 @@
+from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, Response
+from flask import current_app
+import subprocess
+import os
+from fresnote.classes import Projects
+from fresnote.classes import Notebook
+
+projects = Blueprint('projects', __name__)
+
+@projects.route('/', methods=['GET'])
+def index():
+    config = current_app.config['projects_config']
+    projects = Projects(config)
+    return render_template('index.html', data={'projects': projects.projectsList})
+
+
+@projects.route('/select', methods=['POST'])
+def select():
+    project = request.form.getlist('project')[0]
+    return redirect(url_for('projects.load', project=project))
+
+
+@projects.route('/load/<project>', methods=['GET'])
+def load(project):
+    config = current_app.config['projects_config']
+    projects = Projects(config)
+    notes = Notebook(project)
+
+    sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
+    return render_template('project.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+
+
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/create_new_project/<project>', methods=['GET'])
+# def create_new_project_func(project):
+#     notes = Notebook(project)
+#     try:
+#         notes.create_new_project()
+#     except Exception:
+#         flash('Error while creating project.', 'danger')
+#         return redirect(url_for("index.index_func"))
+#     flash('project created successfully', 'success')
+#     return redirect(url_for("index.index_func"))
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/serve/<project>/<project>/<chapter>', methods=['GET', 'POST'])
+# def serve_project_func(project, project, chapter):
+#     notes = project(project)
+#     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+#     sections = notes.get_all_sections_for_chapter(project, chapter)
+#
+#     return render_template('chapter.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project, projectName=project, chapterName=chapter)
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/add_new_project', methods=['POST'])
+# def add_new_project_func(project):
+#     notes = project(project)
+#     data = request.get_json()
+#     projectTitle = data['projectTitle']
+#
+#     try:
+#         notes.add_new_project(projectTitle)
+#     except Exception:
+#         return redirect(url_for('index.index_func')), 400
+#
+#     return redirect(url_for('index.index_func')), 200
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/add_new_chapter', methods=['POST'])
+# def add_new_chapter_func(project):
+#     notes = project(project)
+#     data = request.get_json()
+#     projectTitle = data['projectTitle']
+#     chapterTitle = data['chapterTitle']
+#
+#     try:
+#         notes.add_new_chapter(projectTitle, chapterTitle)
+#     except Exception as error:
+#         print(error)
+#         return '', 400
+#
+#     # When calling a route with javascript, the redirect is not working
+#     # Do a redirect from javascript
+#     return '', 200
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/change_project_title', methods=['POST'])
+# def change_project_title_func(project):
+#     notes = project(project)
+#     data = request.get_json()
+#     previousProjectTitle = data['previousProjectTitle']
+#     newProjectTitle = data['newProjectTitle']
+#
+#     try:
+#         notes.change_project_title(previousProjectTitle, newProjectTitle)
+#     except Exception:
+#         return '', 400
+#     
+#     return '', 200
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/change_chapter_title', methods=['POST'])
+# def change_chapter_title_func(project):
+#     notes = project(project)
+#     data = request.get_json()
+#     previousChapterTitle = data['previousChapterTitle']
+#     newChapterTitle = data['newChapterTitle']
+#     projectTitle = data['projectTitle']
+#
+#     try:
+#         notes.change_chapter_title(projectTitle, previousChapterTitle, newChapterTitle)
+#     except Exception:
+#         return '', 400
+#     
+#     return '', 200
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/search', methods=['GET', 'POST'])
+# def search_func(project):
+#     notes = project(project)
+#
+#     if request.method == 'POST':
+#         query = request.form.get("searchBarQuery")
+#         sections = notes.get_sections_based_on_search_bar_query(query)
+#
+#         sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+#
+#         if sections:
+#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
+#         else:
+#             flash('No sections found', 'danger')
+#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+#     else:
+#         sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+#
+#         sections = []
+#         if sections:
+#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
+#         else:
+#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/view_sections/<sectionsID>', methods=['GET'])
+# def view_sections(project, sectionsID):
+#     notes = project(project)
+#     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+#     sections = notes.get_sections_based_on_IDs(sectionsID)
+#
+#     if sections:
+#         return render_template('view_sections.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
+#     else:
+#         flash('No sections found', 'danger')
+#         return render_template('view_sections.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/upload_file/<project>/<project>/<chapter>', methods=['POST'])
+# def upload_file_func(project, project, chapter):
+#     notes = project(project)
+#     pathToSave = os.path.join(notes.docsDir, 'uploads')
+#
+#     try:
+#         for f in request.files.getlist('uploaded_files_for_project'):
+#             f.save(os.path.join(pathToSave, f.filename))
+#     except Exception as error:
+#         flash('Error while uploading files.', 'danger')
+#         return redirect(url_for('project.serve_project_func', project=project, project=project, chapter=chapter)) 
+#
+#     flash('Files uploaded successfully', 'success')
+#     return redirect(url_for('project.serve_project_func', project=project, project=project, chapter=chapter)) 
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/view_table/<path:filename>/<delimiter>', methods=['GET'])
+# def view_table(project, filename, delimiter):
+#     print(filename)
+#     notes = project(project)
+#     if not delimiter:
+#         delimiter = 'tab'
+#
+#     if delimiter == 'tab':
+#         delimiter = '\t'
+#     elif delimiter == 'comma':
+#         delimiter = ','
+#     elif delimiter == 'space':
+#         delimiter = ' '
+#
+#     filePath = '{}/{}'.format(notes.projectDir, filename)
+#     contents = open(filePath, 'r').read().splitlines()
+#     columns = contents[0].split(delimiter)
+#     rows = [r.split(delimiter) for r in contents[1:]]
+#     return render_template('table_grid.html', columns=columns, rows=rows)
+#
+#
+#
+# """
+# NOTES:
+#     STAYS - CHANGED
+# """
+# @project.route('/<project>/highlight/<path:filename>', methods=['GET'])
+# def highlight_script(project, filename):
+#     notes = project(project)
+#     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+#     filePath = '{}/{}'.format(notes.projectDir, filename)
+#     scriptCode = open(filePath).read()
+#     return render_template('highlight_script_code.html', data={'sidebarData':sidebarData, 'sections':[]}, scriptcode=scriptCode, project=project) 
+#
+#
+# @project.route('/<project>/delete_chapter_keep_sections/<projectName>/<chapterName>', methods=['GET'])
+# def delete_chapter_keep_sections(project, projectName, chapterName):
+#     notes = project(project)
+#     try:
+#         notes.delete_chapter_from_project(projectName, chapterName)
+#     except Exception:
+#         return '', 400
+#     return '', 200
+#
+#
+# @project.route('/<project>/delete_chapter_and_sections/<projectName>/<chapterName>', methods=['GET'])
+# def delete_chapter_and_sections(project, projectName, chapterName):
+#     notes = project(project)
+#     sectionIDs = notes.get_all_sections_ids_for_chapter(projectName, chapterName)
+#     try:
+#         notes.delete_chapter_from_project(projectName, chapterName)
+#         for ID in sectionIDs:
+#             notes.delete_section(ID)
+#     except Exception:
+#         return '', 400
+#     return '', 200
+#
+#
+# @project.route('/<project>/delete_project_keep_sections/<projectName>', methods=['GET'])
+# def delete_project_keep_sections(project, projectName):
+#     notes = project(project)
+#     try:
+#         notes.delete_project(projectName, chapterName)
+#     except Exception:
+#         return '', 400
+#     return '', 200
+#
+#
+# @project.route('/<project>/delete_project_and_sections/<projectName>', methods=['GET'])
+# def delete_project_and_sections(project, projectName):
+#     notes = project(project)
+#     sectionIDs = notes.get_all_sections_ids_for_project(projectName)
+#     try:
+#         notes.delete_project(projectName)
+#         for ID in sectionIDs:
+#             notes.delete_section(ID)
+#     except Exception:
+#         return '', 400
+#     return '', 200
