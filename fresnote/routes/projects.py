@@ -1,7 +1,4 @@
-from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, Response
-from flask import current_app
-import subprocess
-import os
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from pathlib import Path
 from fresnote.classes import Projects
 from fresnote.classes import Notebook
@@ -141,20 +138,10 @@ def change_chapter_title(project):
     return '', 200
 
 
-@projects.route('/add_new_section/<project>/<notebook>/<chapter>', methods=['POST'])
-def add_new_section(project, notebook, chapter):
-    config = current_app.config['projects_config']
-    notes = Notebook(project, config)
-    try:
-        newSectionID = notes.add_new_section(notebook, chapter)
-    except Exception as error:
-        return '', 400
-    return str(newSectionID), 200
-
-
 @projects.route('/<project>/search', methods=['GET', 'POST'])
 def search(project):
     return "This is search bar"
+
 
 # @project.route('/<project>/search', methods=['GET', 'POST'])
 # def search_func(project):

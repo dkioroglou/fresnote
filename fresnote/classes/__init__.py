@@ -204,6 +204,34 @@ class Notebook:
         return sectionID
 
 
+    def check_sections_ids_exist(self, sectionsIDs):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                SELECT COUNT(*) FROM sections 
+                WHERE id IN ({}) 
+                """.format(','.join([str(x) for x in sectionsIDs]))
+                c.execute(query)
+                result = c.fetchone()
+        if not result:
+            return False
+        if result[0] != len(sectionsIDs):
+            return False
+        return True
+
+
+    def save_chapter_sections_order(self, notebook, chapter, sections):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE notebooks 
+                SET sections=(?) 
+                WHERE notebook == (?) AND chapter == (?)
+                """
+
+                c.execute(query, (json.dumps(sections), notebook, chapter))
+                conn.commit()
+
 
     def get_all_sections_for_chapter(self, notebook, chapter):
         with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:

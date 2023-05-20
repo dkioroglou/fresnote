@@ -217,11 +217,7 @@ function editSectionOrder() {
 }
 
 
-function saveSectionOrder(notebook, chapterName) {
-    var projectSectionID = "projectSection";
-    var projectSection = document.getElementById(projectSectionID);
-    var projectTitle = projectSection.innerText;
-
+function saveSectionOrder(project, notebook, chapter) {
     var orderSectionID = "sectionsOrderText";
     var orderSection = document.getElementById(orderSectionID);
     var orderSectionText = orderSection.innerText;
@@ -239,19 +235,20 @@ function saveSectionOrder(notebook, chapterName) {
     saveButton.classList.add('disabled');
 
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/save_chapter_sections_order', true);
+    request.open('POST', '/'+project+'/save_chapter_sections_order', true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(JSON.stringify({
-                        'project': projectTitle,
-                        'chapter': chapterName,
+                        'notebook': notebook,
+                        'chapter': chapter,
                         'sections': orderSectionText
     }));
 
     request.onload = function() {
         responseStatus = request.status;
+        responseText = request.responseText;
         if (responseStatus == 200){
             toastr.success(
-                  'Sections order changed.',
+                  responseText,
                   'Success',
                 {
                   timeOut: 1000,
@@ -261,7 +258,7 @@ function saveSectionOrder(notebook, chapterName) {
                  }
                });
         } else {
-            toastr.error('Error while changing sections order.', 'Error');
+            toastr.error(responseText, 'Error');
 
         }
     };
