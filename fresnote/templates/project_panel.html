@@ -30,8 +30,8 @@
 
             </div>
             <div id="sectionsOrderText">
-                {% if data['sections']|length > 0 %}
-                    {% for section in data['sections'] %}
+                {% if sections|length > 0 %}
+                    {% for section in sections %}
                         {{ section['ID'] }}-{{ section['section'] }} <br>
                     {% endfor %}
                 {% endif %}

@@ -58,23 +58,21 @@
 <div class="wrapper">
         <!-- Sidebar  -->
         <nav id="sidebar">
-            {% if data['sidebarData']|length > 0 %}
+            {% if sidebarData|length > 0 %}
                 <ul class="list-unstyled components">
-                    {% for notebook in data['sidebarData'] %}
+                    {% for notebook in sidebarData %}
                         <li id="sideBarli">
-                            <a href="#notebook_{{ data['sidebarData'][notebook]['notebookID'] }}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">{{ notebook }} </a>
+                            <a href="#notebook_{{ sidebarData[notebook]['notebookID'] }}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">{{ notebook }} </a>
                     
-                            <ul class="collapse list-unstyled" id="notebook_{{ data['sidebarData'][notebook]['notebookID'] }}">
-                                {% if data['sidebarData'][notebook]['chapters']|length > 0 %}
-                                    {% for chapter in data['sidebarData'][notebook]['chapters'] %}
+                            <ul class="collapse list-unstyled" id="notebook_{{ sidebarData[notebook]['notebookID'] }}">
+                                {% if sidebarData[notebook]['chapters']|length > 0 %}
+                                    {% for chapter in sidebarData[notebook]['chapters'] %}
                                         <li id="sideBarli">
-                                            <!-- TODO: create route: projects.serve/<project>/<notebook>/<chapter> -->
                                             <a href="{{ url_for('projects.serve', project=project, notebook=project, chapter=chapter) }}">{{ chapter }}</a>
                                         </li>
                                     {% endfor %}
                                 {% endif %}
 
-                                <!-- TODO: change arguements of addNewChapter to project notebook-->
                                 <a class="btn btn-sm btn-outline-info text-dark mb-5 mt-3 pl-0" role="button" onclick="addNewChapter('{{ project }}', '{{ notebook }}');">New chapter</a>
                             </ul>
 

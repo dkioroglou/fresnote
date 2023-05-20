@@ -1,7 +1,7 @@
 <!-- sections is a list of dictionaries -->
 <div id="sectionsArea" class="container-fluid">
-    {% if data['sections']|length > 0 %}
-        {% for section in data['sections'] %}
+    {% if sections|length > 0 %}
+        {% for section in sections %}
             <div class='row mb-4'>
                 <div id="chapterSectionCard_{{ section['ID'] }}" class='col-md-12 chapterSectionCard'>
 

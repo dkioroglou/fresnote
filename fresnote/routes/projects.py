@@ -8,6 +8,12 @@ from fresnote.classes import Notebook
 
 projects = Blueprint('projects', __name__)
 
+"""
+NOTES: 
+     When calling a route with javascript, the flask redirect is not working.
+     Do a redirect whithin the javascript function.
+"""
+
 @projects.route('/', methods=['GET'])
 def index():
     config = current_app.config['projects_config']
@@ -42,12 +48,71 @@ def select():
     return redirect(url_for('projects.load', project=project))
 
 
-@projects.route('/load/<project>', methods=['GET'])
-def load(project):
+@projects.route('/load/<project>', defaults={'notebook': None}, methods=['GET'])
+@projects.route('/load/<project>/<notebook>', methods=['GET'])
+def load(project, notebook):
     config = current_app.config['projects_config']
     notes = Notebook(project, config)
     sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
-    return render_template('project.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project, notebook=None, chapter=None)
+    return render_template('project.html', 
+                           sidebarData=sidebarData,
+                           project=project, 
+                           notebook=notebook, 
+                           chapter=None,
+                           sections=[])
+
+
+
+@projects.route('/<project>/add_notebook', methods=['POST'])
+def add_notebook(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    notebook = data['notebook']
+
+    try:
+        notes.add_notebook(notebook)
+    except Exception:
+        return '', 400
+
+    return '', 200
+
+
+@projects.route('/<project>/add_chapter', methods=['POST'])
+def add_chapter(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    notebook = data['notebook']
+    chapter = data['chapter']
+
+    try:
+        notes.add_chapter(notebook, chapter)
+    except Exception as error:
+        return '', 400
+    return '', 200
+
+
+@projects.route('/serve/<project>/<notebook>/<chapter>', methods=['GET', 'POST'])
+def serve(project, notebook, chapter):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
+    sections = notes.get_all_sections_for_chapter(notebook, chapter)
+
+    return render_template('project.html', 
+                           sidebarData=sidebarData,
+                           project=project, 
+                           notebook=notebook, 
+                           chapter=None,
+                           sections=[])
+
+    # notes = project(project)
+    # sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+    #
+    # return render_template('chapter.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project, projectName=project, chapterName=chapter)
+
+
 
 
 #
@@ -57,63 +122,6 @@ def load(project):
 # NOTES:
 #     STAYS - CHANGED
 # """
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/serve/<project>/<project>/<chapter>', methods=['GET', 'POST'])
-# def serve_project_func(project, project, chapter):
-#     notes = project(project)
-#     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-#     sections = notes.get_all_sections_for_chapter(project, chapter)
-#
-#     return render_template('chapter.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project, projectName=project, chapterName=chapter)
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/add_new_project', methods=['POST'])
-# def add_new_project_func(project):
-#     notes = project(project)
-#     data = request.get_json()
-#     projectTitle = data['projectTitle']
-#
-#     try:
-#         notes.add_new_project(projectTitle)
-#     except Exception:
-#         return redirect(url_for('index.index_func')), 400
-#
-#     return redirect(url_for('index.index_func')), 200
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/add_new_chapter', methods=['POST'])
-# def add_new_chapter_func(project):
-#     notes = project(project)
-#     data = request.get_json()
-#     projectTitle = data['projectTitle']
-#     chapterTitle = data['chapterTitle']
-#
-#     try:
-#         notes.add_new_chapter(projectTitle, chapterTitle)
-#     except Exception as error:
-#         print(error)
-#         return '', 400
-#
-#     # When calling a route with javascript, the redirect is not working
-#     # Do a redirect from javascript
-#     return '', 200
-#
 #
 # """
 # NOTES:
@@ -204,7 +212,7 @@ def search(project):
 #
 
 @projects.route('/upload_file/<project>', methods=['POST'])
-def upload_file_func(project):
+def upload_file(project):
     return "Upload file to project"
 
 # @project.route('/upload_file/<project>/<project>/<chapter>', methods=['POST'])

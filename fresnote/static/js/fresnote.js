@@ -1,28 +1,27 @@
-// Function for adding new project
-function addNewProject(notebook) {
-  let projectTitle = prompt("Enter project name:", "");
-  if (projectTitle != null) {
+function addNewNotebook(project) {
+  let notebook = prompt("Enter notebook name:", "");
+  if (notebook != null) {
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/add_new_project', true);
+    request.open('POST', '/'+project+'/add_notebook', true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(JSON.stringify({
-                        'projectTitle': projectTitle,
+                    'notebook': notebook,
     }));
     request.onload = function() {
         responseStatus = request.status;
         if (responseStatus == 200){
             toastr.success(
-                  'New project added.',
+                  'New notebook added.',
                   'Success',
                 {
                   timeOut: 1000,
                   fadeOut: 1000,
                   onHidden: function () {
-                    window.location.href = "/serve/"+notebook+'/'+projectTitle+'/'+'First chapter';
+                    window.location.href = "/load/"+project+'/'+notebook;
                  }
                });
         } else {
-            toastr.error('New project was not added.', 'Error');
+            toastr.error('Error while adding notebook. Notebook not added.', 'Error');
             
         }
     };
@@ -33,15 +32,15 @@ function addNewProject(notebook) {
 
 
 
-function addNewChapter(notebook, projectTitle) {
-  let chapterTitle = prompt("Enter chapter name:", "");
-  if (chapterTitle != null) {
+function addNewChapter(project, notebook) {
+  let chapter = prompt("Enter chapter name:", "");
+  if (chapter != null) {
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/add_new_chapter', true);
+    request.open('POST', '/'+project+'/add_chapter', true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(JSON.stringify({
-                        'projectTitle': projectTitle,
-                        'chapterTitle': chapterTitle
+                        'notebook': notebook,
+                        'chapter': chapter
     }));
     request.onload = function() {
         responseStatus = request.status;
@@ -53,11 +52,11 @@ function addNewChapter(notebook, projectTitle) {
                   timeOut: 1000,
                   fadeOut: 1000,
                   onHidden: function () {
-                      window.location.href = "/serve/"+notebook+'/'+projectTitle+"/"+chapterTitle;
+                      window.location.href = "/serve/"+project+'/'+notebook+"/"+chapter;
                   }
                 });
         } else {
-            toastr.error('New chapter was not added.', 'Error');
+            toastr.error('Error while adding chapter. Chapter not added.', 'Error');
 
         }
     };
