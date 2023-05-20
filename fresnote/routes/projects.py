@@ -104,65 +104,53 @@ def serve(project, notebook, chapter):
                            sidebarData=sidebarData,
                            project=project, 
                            notebook=notebook, 
-                           chapter=None,
-                           sections=[])
-
-    # notes = project(project)
-    # sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-    #
-    # return render_template('chapter.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project, projectName=project, chapterName=chapter)
+                           chapter=chapter,
+                           sections=sections)
 
 
+@projects.route('/<project>/change_notebook_title', methods=['POST'])
+def change_notebook_title(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    previousNotebookTitle = data['previousNotebookTitle']
+    newNotebookTitle = data['newNotebookTitle']
+
+    try:
+        notes.change_notebook_title(previousNotebookTitle, newNotebookTitle)
+    except Exception as error:
+        return '', 400
+    
+    return '', 200
 
 
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/change_project_title', methods=['POST'])
-# def change_project_title_func(project):
-#     notes = project(project)
-#     data = request.get_json()
-#     previousProjectTitle = data['previousProjectTitle']
-#     newProjectTitle = data['newProjectTitle']
-#
-#     try:
-#         notes.change_project_title(previousProjectTitle, newProjectTitle)
-#     except Exception:
-#         return '', 400
-#     
-#     return '', 200
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/change_chapter_title', methods=['POST'])
-# def change_chapter_title_func(project):
-#     notes = project(project)
-#     data = request.get_json()
-#     previousChapterTitle = data['previousChapterTitle']
-#     newChapterTitle = data['newChapterTitle']
-#     projectTitle = data['projectTitle']
-#
-#     try:
-#         notes.change_chapter_title(projectTitle, previousChapterTitle, newChapterTitle)
-#     except Exception:
-#         return '', 400
-#     
-#     return '', 200
-#
-#
+@projects.route('/<project>/change_chapter_title', methods=['POST'])
+def change_chapter_title(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    previousChapterTitle = data['previousChapterTitle']
+    newChapterTitle = data['newChapterTitle']
+    notebook = data['notebook']
+
+    try:
+        notes.change_chapter_title(notebook, previousChapterTitle, newChapterTitle)
+    except Exception:
+        return '', 400
+    
+    return '', 200
+
+
+@projects.route('/add_new_section/<project>/<notebook>/<chapter>', methods=['POST'])
+def add_new_section(project, notebook, chapter):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    try:
+        newSectionID = notes.add_new_section(notebook, chapter)
+    except Exception as error:
+        return '', 400
+    return str(newSectionID), 200
+
 
 @projects.route('/<project>/search', methods=['GET', 'POST'])
 def search(project):

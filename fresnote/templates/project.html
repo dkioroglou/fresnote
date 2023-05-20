@@ -13,12 +13,12 @@
                         <h1>Choose notebook</h1>
                     </div>
                 </div>
-            {% elif sections|length == 0%}
+            {% elif sections|length == 0 %}
                 {% include 'project_panel.html' %}
 
                 <div class='row'>
                     <div class='col-md-12'>
-                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}');">Add new section</button>
+                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Add new section</button>
                     </div>
                 </div>
 
@@ -29,7 +29,7 @@
 
                 <div class='row'>
                     <div class='col-md-12'>
-                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}');">Add new section</button>
+                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Add new section</button>
                     </div>
                 </div>
             {% endif %}

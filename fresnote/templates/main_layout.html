@@ -68,7 +68,7 @@
                                 {% if sidebarData[notebook]['chapters']|length > 0 %}
                                     {% for chapter in sidebarData[notebook]['chapters'] %}
                                         <li id="sideBarli">
-                                            <a href="{{ url_for('projects.serve', project=project, notebook=project, chapter=chapter) }}">{{ chapter }}</a>
+                                            <a href="{{ url_for('projects.serve', project=project, notebook=notebook, chapter=chapter) }}">{{ chapter }}</a>
                                         </li>
                                     {% endfor %}
                                 {% endif %}

@@ -17,7 +17,7 @@ function addNewNotebook(project) {
                   timeOut: 1000,
                   fadeOut: 1000,
                   onHidden: function () {
-                    window.location.href = "/load/"+project+'/'+notebook;
+                    window.location.href = "/serve/"+project+'/'+notebook+"/"+"First chapter";
                  }
                });
         } else {
@@ -68,69 +68,65 @@ function addNewChapter(project, notebook) {
 
 
 
-function editProject() {
-    var projectSectionID = "projectSection";
-    var projectSection = document.getElementById(projectSectionID);
+function editNotebook() {
+    var notebookSectionID = "notebookSection";
+    var notebookSection = document.getElementById(notebookSectionID);
 
-    var editButtonID = "editProjectButton";
+    var editButtonID = "editNotebookButton";
     var editButton = document.getElementById(editButtonID);
 
-    var saveButtonID = "saveProjectButton";
+    var saveButtonID = "saveNotebookButton";
     var saveButton = document.getElementById(saveButtonID);
 
-    projectSection.style.border = "3px solid #24a2b8";
-    projectSection.setAttribute('contenteditable', 'true');
+    notebookSection.style.border = "3px solid #24a2b8";
+    notebookSection.setAttribute('contenteditable', 'true');
 
     editButton.classList.add('disabled');
     saveButton.classList.remove('disabled');
 }
 
 
-function saveProject(notebook, previousProjectTitle) {
-    var chapterSectionID = "chapterSection";
-    var chapterSection = document.getElementById(chapterSectionID);
-    var chapterTitle = chapterSection.innerText;
+function saveNotebook(project, previousNotebookTitle, chapter) {
+    var notebookSectionID = "notebookSection";
+    var notebookSection = document.getElementById(notebookSectionID);
 
-    var projectSectionID = "projectSection";
-    var projectSection = document.getElementById(projectSectionID);
+    var newNotebookTitle = notebookSection.innerText;
 
-    var newProjectTitle = projectSection.innerText;
-
-    var editButtonID = "editProjectButton";
+    var editButtonID = "editNotebookButton";
     var editButton = document.getElementById(editButtonID);
 
-    var saveButtonID = "saveProjectButton";
+    var saveButtonID = "saveNotebookButton";
     var saveButton = document.getElementById(saveButtonID);
 
-    projectSection.style.border = "";
-    projectSection.setAttribute('contenteditable', 'false');
+    notebookSection.style.border = "";
+    notebookSection.setAttribute('contenteditable', 'false');
 
     editButton.classList.remove('disabled');
     saveButton.classList.add('disabled');
 
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/change_project_title', true);
+    request.open('POST', '/'+project+'/change_notebook_title', true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(JSON.stringify({
-                        'previousProjectTitle': previousProjectTitle,
-                        'newProjectTitle': newProjectTitle
+                        'previousNotebookTitle': previousNotebookTitle,
+                        'newNotebookTitle': newNotebookTitle
     }));
 
     request.onload = function() {
         responseStatus = request.status;
         if (responseStatus == 200){
             toastr.success(
-                  'Project renamed.',
+                  'Notebook renamed.',
                   'Success',
                 {
                   timeOut: 1000,
                   fadeOut: 1000,
                   onHidden: function () {
-                    window.location.href = "/serve"+'/'+notebook+'/'+newProjectTitle+'/'+chapterTitle;
+                    window.location.href = "/serve"+'/'+project+'/'+newNotebookTitle+'/'+chapter;
                  }
                });
         } else {
-            toastr.error('Error while renaming project.', 'Error');
+            toastr.error('Error while renaming notebook.', 'Error');
 
         }
     };
@@ -155,11 +151,7 @@ function editChapter() {
 }
 
 
-function saveChapter(notebook, previousChapterTitle) {
-    var projectSectionID = "projectSection";
-    var projectSection = document.getElementById(projectSectionID);
-    var projectTitle = projectSection.innerText;
-
+function saveChapter(project, notebook, previousChapterTitle) {
     var chapterSectionID = "chapterSection";
     var chapterSection = document.getElementById(chapterSectionID);
 
@@ -178,12 +170,12 @@ function saveChapter(notebook, previousChapterTitle) {
     saveButton.classList.add('disabled');
 
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/change_chapter_title', true);
+    request.open('POST', '/'+project+'/change_chapter_title', true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(JSON.stringify({
                         'previousChapterTitle': previousChapterTitle,
                         'newChapterTitle': newChapterTitle,
-                        'projectTitle': projectTitle
+                        'notebook': notebook
     }));
 
     request.onload = function() {
@@ -196,7 +188,7 @@ function saveChapter(notebook, previousChapterTitle) {
                   timeOut: 1000,
                   fadeOut: 1000,
                   onHidden: function () {
-                    window.location.href = '/serve'+'/'+notebook+'/'+projectTitle+'/'+newChapterTitle;
+                    window.location.href = '/serve'+'/'+project+'/'+notebook+'/'+newChapterTitle;
                  }
                });
         } else {
@@ -687,17 +679,9 @@ function saveContent(sectionID) {
 
 
 // NOTES: STAYS - changed
-function addNewSection(notebook) {
-    var projectID = "projectSection";
-    var projectSection = document.getElementById(projectID);
-    var project = projectSection.innerText;
-
-    var chapterID = "chapterSection";
-    var chapterSection = document.getElementById(chapterID);
-    var chapter = chapterSection.innerText;
-
+function addNewSection(project, notebook, chapter) {
     const request = new XMLHttpRequest();
-    request.open('POST', '/add_new_section/'+notebook+'/'+project+'/'+chapter, true);
+    request.open('POST', '/add_new_section/'+project+'/'+notebook+'/'+chapter, true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(null);
     request.onload = function() {
@@ -709,7 +693,6 @@ function addNewSection(notebook) {
 
         }
     };
-
 }
 
 

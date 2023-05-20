@@ -6,6 +6,7 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 import configparser
+from fresnote.classes.renderer import Renderer
 
 
 class Projects:
@@ -143,8 +144,69 @@ class Notebook:
                 conn.commit()
 
 
+    def change_notebook_title(self, previousNotebookTitle, newNotebookTitle):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE notebooks 
+                SET notebook=(?) 
+                WHERE notebook == (?)
+                """
+
+                c.execute(query, (newNotebookTitle, previousNotebookTitle))
+                conn.commit()
+
+
+    def change_chapter_title(self, notebook, previousChapterTitle, newChapterTitle):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE notebooks 
+                SET chapter=(?) 
+                WHERE chapter == (?) AND notebook == (?)
+                """
+
+                c.execute(query, (newChapterTitle, previousChapterTitle, notebook))
+                conn.commit()
+
+
+    def add_new_section(self, notebook, chapter):
+        today = datetime.today().strftime('%Y-%m-%d')
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                INSERT INTO sections 
+                (section, tags, content, folded, date)
+                VALUES (?,?,?,?,?)
+                """
+                c.execute(query, ('New section', 'na', 'Section content', 0, today))
+                sectionID = c.lastrowid
+                conn.commit()
+
+                query = """
+                SELECT sections FROM notebooks 
+                WHERE notebook == (?) AND chapter == (?)
+                """
+                c.execute(query, (notebook, chapter))
+                sections = c.fetchone()[0]
+
+                sections = json.loads(sections)
+                sections.append(sectionID)
+
+                query = """
+                UPDATE notebooks 
+                SET sections=(?) 
+                WHERE notebook == (?) AND chapter == (?)
+                """
+                c.execute(query, (json.dumps(sections), notebook, chapter))
+                conn.commit()
+
+        return sectionID
+
+
+
     def get_all_sections_for_chapter(self, notebook, chapter):
-        with contextlib.closing(sqlite3.connect(self.db)) as conn:
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
             with contextlib.closing(conn.cursor()) as c:
                 query = """
                 SELECT sections FROM notebooks 
@@ -165,8 +227,15 @@ class Notebook:
                 else:
                     sectionsResults = []
 
-        sections = self.convert_db_results_into_sections(notebook, chapter,
-                                                         sectionsResults, sectionsIDs)
+        if sectionsResults:
+            render = Renderer()
+            sections = render.convert_db_results_into_sections(notebook,
+                                                             chapter,
+                                                             sectionsResults,
+                                                             sectionsIDs,
+                                                             self.projectDB)
+        else:
+            sections = []
         return sections
 
 

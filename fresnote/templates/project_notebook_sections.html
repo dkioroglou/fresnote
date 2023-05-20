@@ -1,87 +1,84 @@
-<!-- sections is a list of dictionaries -->
 <div id="sectionsArea" class="container-fluid">
-    {% if sections|length > 0 %}
-        {% for section in sections %}
-            <div class='row mb-4'>
-                <div id="chapterSectionCard_{{ section['ID'] }}" class='col-md-12 chapterSectionCard'>
+    {% for section in sections %}
+        <div class='row mb-4'>
+            <div id="chapterSectionCard_{{ section['ID'] }}" class='col-md-12 chapterSectionCard'>
 
-                    <!-- Title -->
-                    <div id="title_section_{{ section['ID'] }}" contenteditable="false">
+                <!-- Title -->
+                <div id="title_section_{{ section['ID'] }}" contenteditable="false">
 
-                        <!-- Fold Button -->
-                        <a class="btn btn-sm btn-outline-secondary float-right text-dark" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ project }}', '{{ section['ID'] }}');">
-                            Fold
-                        </a>
+                    <!-- Fold Button -->
+                    <a class="btn btn-sm btn-outline-secondary float-right text-dark" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ project }}', '{{ section['ID'] }}');">
+                        Fold
+                    </a>
 
-                        <!-- Info Button -->
-                        <a class="btn btn-sm btn-outline-secondary float-right mr-2 text-dark" role="button" data-toggle="collapse" data-target="#infoSection_{{ section['ID'] }}" aria-expanded="false" aria-controls="infoSection_{{ section['ID'] }}">
-                            Info
-                        </a>
+                    <!-- Info Button -->
+                    <a class="btn btn-sm btn-outline-secondary float-right mr-2 text-dark" role="button" data-toggle="collapse" data-target="#infoSection_{{ section['ID'] }}" aria-expanded="false" aria-controls="infoSection_{{ section['ID'] }}">
+                        Info
+                    </a>
+
+                    <!-- Save Button -->
+                    <a id="saveTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-success float-right mr-2 disabled text-success" role="button" onclick="saveTitle('{{ project }}', '{{ section['ID'] }}');">Save</a>
+
+                    <!-- Edit Button -->
+                    <a id="editTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 text-info" role="button" onclick="editTitle({{ section['ID'] }});">Edit</a>
+
+                    <h4 id="title_{{ section['ID'] }}">{{ section['section']|safe }}</h4>
+                </div>
+
+
+                <!-- Section info -->
+                <div class="collapse" id="infoSection_{{ section['ID'] }}">
+
+                    <!-- Delete Button -->
+                    <a id="deleteTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-danger float-left ml-2 mr-2 mt-2 text-danger" role="button" onclick="deleteSection('{{ project }}', '{{ section['ID'] }}');">Delete section</a>
+
+                    <!-- ID section -->
+                    <div class="card-header tagSection">
+                        Section ID: {{ section['ID'] }}
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="card-header tagSection" id="tags_section_{{ section['ID'] }}"  contenteditable="false">
 
                         <!-- Save Button -->
-                        <a id="saveTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-success float-right mr-2 disabled text-success" role="button" onclick="saveTitle('{{ project }}', '{{ section['ID'] }}');">Save</a>
+                        <a id="saveTagsButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-success text-success float-right disabled pt-0 pb-0" role="button" onclick="saveTags('{{ project }}', '{{ section['ID'] }}');">Save</a>
 
                         <!-- Edit Button -->
-                        <a id="editTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 text-info" role="button" onclick="editTitle({{ section['ID'] }});">Edit</a>
+                        <a id="editTagsButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 pt-0 pb-0 text-info" role="button" onclick="editTags('{{ project }}', '{{ section['ID'] }}');">Edit</a>
 
-                        <h4 id="title_{{ section['ID'] }}">{{ section['section']|safe }}</h4>
-                    </div>
-
-
-                    <!-- Section info -->
-                    <div class="collapse" id="infoSection_{{ section['ID'] }}">
-
-                        <!-- Delete Button -->
-                        <a id="deleteTitleButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-danger float-left ml-2 mr-2 mt-2 text-danger" role="button" onclick="deleteSection('{{ project }}', '{{ section['ID'] }}');">Delete section</a>
-
-                        <!-- ID section -->
-                        <div class="card-header tagSection">
-                            Section ID: {{ section['ID'] }}
-                        </div>
-
-                        <!-- Tags -->
-                        <div class="card-header tagSection" id="tags_section_{{ section['ID'] }}"  contenteditable="false">
-
-                            <!-- Save Button -->
-                            <a id="saveTagsButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-success text-success float-right disabled pt-0 pb-0" role="button" onclick="saveTags('{{ project }}', '{{ section['ID'] }}');">Save</a>
-
-                            <!-- Edit Button -->
-                            <a id="editTagsButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 pt-0 pb-0 text-info" role="button" onclick="editTags('{{ project }}', '{{ section['ID'] }}');">Edit</a>
-
-                            <div id="tags_{{ section['ID'] }}">
-                                {% for tag in section['tags']%}
-                                    <span class="badge badge-warning">{{ tag }}</span>
-                                {% endfor %}
-                            </div>
+                        <div id="tags_{{ section['ID'] }}">
+                            {% for tag in section['tags']%}
+                                <span class="badge badge-warning">{{ tag }}</span>
+                            {% endfor %}
                         </div>
                     </div>
+                </div>
 
-                    {% if section['folded'] == 0 %}
-                    <div class='collapse show' id="collapse_content_section_{{ section['ID'] }}">
-                    {% else %}
-                    <div class='collapse' id="collapse_content_section_{{ section['ID'] }}">
-                    {% endif %}
+                {% if section['folded'] == 0 %}
+                <div class='collapse show' id="collapse_content_section_{{ section['ID'] }}">
+                {% else %}
+                <div class='collapse' id="collapse_content_section_{{ section['ID'] }}">
+                {% endif %}
 
-                        <div class='card-body' id="content_section_{{ section['ID'] }}"  contenteditable="false">
-                            <!-- Edit Button -->
-                            <a id="editContentButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 text-info" role="button" onclick="editContent('{{ project }}', '{{ section['ID'] }}');">Edit</a>
+                    <div class='card-body' id="content_section_{{ section['ID'] }}"  contenteditable="false">
+                        <!-- Edit Button -->
+                        <a id="editContentButton_{{ section['ID'] }}" class="btn btn-sm btn-outline-info float-right mr-2 text-info" role="button" onclick="editContent('{{ project }}', '{{ section['ID'] }}');">Edit</a>
 
-                            <div id="content_{{ section['ID'] }}">
-                                {{ section['content']|safe }}
-                            </div>
-
-                            <br>
-
-                            <!-- Fold Button -->
-                            <a id="foldContentButton_{{ section['ID'] }}" class="btn btn-sm btn-secondary float-right" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ project }}','{{ section['ID'] }}');">
-                                Fold
-                            </a>
+                        <div id="content_{{ section['ID'] }}">
+                            {{ section['content']|safe }}
                         </div>
-                    </div>
 
-                </div> <!-- section card -->
-            </div> <!-- row mb-4 -->
-        {% endfor %}
-    {% endif %}
+                        <br>
+
+                        <!-- Fold Button -->
+                        <a id="foldContentButton_{{ section['ID'] }}" class="btn btn-sm btn-secondary float-right" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ project }}','{{ section['ID'] }}');">
+                            Fold
+                        </a>
+                    </div>
+                </div>
+
+            </div> <!-- section card -->
+        </div> <!-- row mb-4 -->
+    {% endfor %}
 </div>
 

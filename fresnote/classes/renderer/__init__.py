@@ -1,85 +1,230 @@
-import markdown
+# import markdown
 import re
+from typing import List, Tuple, Dict
 
-md = markdown.Markdown(extensions=['mdx_math', 'tables', 
-                                   'fenced_code', 'toc', 
-                                   'admonition', 'sane_lists', 
-                                   'nl2br', 'pymdownx.tasklist'])
+# md = markdown.Markdown(extensions=['mdx_math', 'tables', 
+#                                    'fenced_code', 'toc', 
+#                                    'admonition', 'sane_lists', 
+#                                    'nl2br', 'pymdownx.tasklist'])
 
-class Renderer:
+class Markdown:
 
-    def convert_db_results_into_sections(self, notebook, chapter, sectionsResults, sectionsIDs):
+    def render_markdown_bold_text_markups(self, text: str) -> str:
+        """Converts markdown bold markups to html bold markups."""
+        if "**" in text and text.count("**") % 2 == 0:
+            probe = '**(.*?)**'
+            boldTexts = re.findall(probe, text)
 
-        def process_tags(tags):
+            for boldText in boldTexts:
+                renderedText = f"<b>{boldText}</b>"
+                text = text.replace(f'**{boldText}**', renderedText)
+        return text
+
+    def render_markdown_italics_text_markups(self, text: str) -> str:
+        """Converts markdown italics markups to html italics markups."""
+        if "__" in text and text.count("__") % 2 == 0:
+            probe = '**(.*?)**'
+            italicsTexts = re.findall(probe, text)
+
+            for italicsText in italicsTexts:
+                renderedText = f"<i>{italicsText}</i>"
+                text = text.replace(f'**{italicsText}**', renderedText)
+        return text
+
+    def render_markdown_headers_markups(self, text: str) -> str:
+        """Converts markdown header markups to html header markups."""
+        if text.startswith("# "):
+            text = "<h1>{}</h1>".format(text.split("# ", 1)[-1])
+        elif text.startswith("## "):
+            text = "<h2>{}</h2>".format(text.split("## ", 1)[-1])
+        elif text.startswith("### "):
+            text = "<h3>{}</h3>".format(text.split("### ", 1)[-1])
+        elif text.startswith("#### "):
+            text = "<h4>{}</h4>".format(text.split("#### ", 1)[-1])
+        return text
+
+
+
+class Renderer(Markdown):
+
+    def convert_db_results_into_sections(self, 
+                                         notebook: str, 
+                                         chapter: str, 
+                                         sectionsResults: List,
+                                         sectionsIDs: List,
+                                         db: str) -> List[Dict]:
+        """Converts results returned from the project database to a list of dictionaries. Each dictionary corresponds to a section with various markups being converted to html markups."""
+
+        def create_tags_list(tags: str) -> List:
             if ',' in tags:
                 tags = [x.strip(' ') for x in tags.split(',')]
             else:
                 tags = [tags.strip(' ')]
             return tags
 
-        sections = list()
+        def convert_section_fields_to_dictionary(notebook: str, chapter: str, dbres: Tuple) -> Dict:
+            ID, section, tags, content, folded, creationDate = dbres
+            sectionDict = {
+                    "ID"      : ID,
+                    "notebook": notebook,
+                    "chapter" : chapter,
+                    "section" :  section,
+                    "tags"    : tags,
+                    "content" : content,
+                    "folded"  : folded,
+                    "date"    : creationDate
+                    }
+            return sectionDict
+
+        # tmp is temporary so that sections are added later based on order.
         tmp = dict()
-        if sectionsResults:
-            for res in sectionsResults:
-                ID, section, tags, content, visible, folded, creationDate = res
+        for dbres in sectionsResults:
+            sectionDict = convert_section_fields_to_dictionary(notebook, chapter, dbres)
+            sectionDict['tags'] = create_tags_list(sectionDict['tags'])
+            """
+            NOTES:
+                In the following steps the content of the section is broken down in lines based on newlines.
+                In each line, the markups are converted to html.
 
-                tags = process_tags(tags)
-                content = self.replace_includes(content)
-                content = self.replace_includes_folded(content, ID)
+                The splitlines(keepends=True) converts a string like:
+                    'This is line 1\n\nThis is line2'
+                to:
+                    ['This is line 1\n', '\n', 'This is line2']
+            """
+            renderedLines = list()
+            flags = {'order':[], 
+                     'counts': {'fold': 0},
+                     'errors': False
+                    }
+            if '\n' in sectionDict['content']:
+                contentLines = sectionDict['content'].splitlines(keepends=True)
+                for line in contentLines:
+                    line, flags = self.pass_line_through_renderers(line, flags, sectionDict['ID'])
+                    renderedLines.append(line)
+            else:
+                line, flags = self.pass_line_through_renderers(sectionDict['content'], flags, sectionDict['ID'])
+                renderedLines.append(line)
 
-                sectionDict = dict()
-                sectionDict['project'] = info["project"]
-                sectionDict['chapter'] = info["chapter"]
-                sectionDict['ID'] = ID
-                # sectionDict['section'] = self.replace_various_markups_for_section(section, content)
-                sectionDict['section'] = section
-                sectionDict['section'] = self.insert_tag_icon_annotations_to_section(tags, sectionDict['section'])
-                sectionDict['tags'] = tags
-                sectionDict['content'] = md.convert(content)
-                sectionDict['content'] = self.replace_various_markups(sectionDict['content'], ID)
-                sectionDict['folded'] = folded
-                
-                tmp[ID] = sectionDict
-
-            # Put sections with order specified in passed order list
-            for sID in order:
-                sections.append(tmp[sID])
+            if flags['order'] or flags['errors']:
+                sectionDict['content'] = "<r>Errors while rendering section</r>\n"+sectionDict['content']
+            else:
+                sectionDict['content'] = ''.join(renderedLines)
+            tmp[sectionDict['ID']] = sectionDict
+        sections = list()
+        for sID in sectionsIDs:
+            sections.append(tmp[sID])
         return sections
 
-    def replace_includes(self, text):
-        if '\\include{' in text:
-            probe = '\\\\include{(.*?)}'
-            includes = re.findall(probe, text)
 
-            for include in includes:
-                project = False
+    def pass_line_through_renderers(self, line: str, flags: Dict, ID: int) -> Tuple[str, Dict]: 
+
+        def render_flag(flag, flags, *args):
+            if flags['order'] and flags['order'][-1] == flag:
+                    flags['order'].pop()
+                    if args:
+                        return (flags_end_markup[flag].format(*args), flags)
+                    else:
+                        return (flags_end_markup[flag], flags)
+            else:
+                flags['order'].append(flag)
+                if args:
+                    return (flags_start_markup[flag].format(*args), flags)
+                else:
+                    return (flags_start_markup[flag], flags)
+
+        flags_start_markup = {
+                'code': '<pre>',
+                'fold': """<a class="btn btn-outline-light text-white col-12" data-toggle="collapse" href="#subsection_fold_{1}_{0}" role="button" aria-expanded="false" aria-controls="subsection_fold_{1}_{0}">{2}</a>
+<div class='container-fluid'>
+<div class='row'>
+<div class='col-12'>
+<div class='collapse' id="subsection_fold_{1}_{0}">
+"""
+        }
+
+        flags_end_markup = {
+                'code': '</pre>',
+                'fold': """</div>
+</div>
+</div>
+</div>
+"""
+        }
+
+        if not line.strip("\n"):
+            return (line, flags)
+
+        if line.startswith('```'):
+            try:
+                line, flags = render_flag('code', flags) 
+            except Exception:
+                flags['errors'] = True
+            return (line, flags)
+
+        if line.startswith('\\fold{'):
+            try:
+                title = line.replace("\\fold{", "")
+                flags['counts']['fold'] += 1
+                args = [ID, flags['counts']['fold'], title]  
+                line, flags = render_flag('fold', flags, *args) 
+            except Exception:
+                flags['errors'] = True
+            return (line, flags)
+
+        if line.startswith('}'):
+            if flags['order'] and flags['order'][-1] == 'code':
+                return (line, flags)
+            else:
                 try:
-                    if ":" in include:
-                        project, includeID = include.split(":")
-                        project = project.strip(' ')
-                        includeID = int(includeID.strip(" "))
-                    else:
-                        includeID = int(include.strip(' '))
-
-                    if project:
-                        includeContent = get_section_content(notebook, includeID)
-                    else:
-                        includeContent = self.get_section_content_without_backup(includeID)
-
+                    line, flags = render_flag(flags['order'][-1], flags)
                 except Exception:
-                    text = "<r>Error retrieving content for included sections</r>\n"+text 
-                    text = text.replace('\\include{{{}}}'.format(include), '<r>\\include{{{}}}</r>'.format(include))
-                    return text
-                if notebook:
-                    sectionIndicator = '<a href="/{0}/view_sections/{1}"><span class="badge badge-pill badge-info">section {1}</span></a><hr>'.format(notebook, includeID)
-                else:
-                    sectionIndicator = '<a href="/{0}/view_sections/{1}"><span class="badge badge-pill badge-info">section {1}</span></a><hr>'.format(self.notebookName, includeID)
-                includeContent = sectionIndicator + '\\begin{included-section-marker}\n' + includeContent + "\n\n" + "<hr>" + '\\end{included-section-marker}' + "<br>"
-                if notebook:
-                    text = text.replace('\\include{{{}:{}}}'.format(notebook, includeID), includeContent)
-                else:
-                    text = text.replace('\\include{{{{}}}}'.format(includeID), includeContent)
-        return text
+                    flags['errors'] = True
+                return (line, flags)
+
+        if flags['order'] and flags['order'][-1] == 'code':
+            return (line, flags)
+
+        line = self.render_markdown_headers_markups(line)
+        line = self.render_markdown_bold_text_markups(line)
+        line = self.render_markdown_italics_text_markups(line)
+
+        return (line, flags)
+
+
+    # def replace_includes(self, text):
+    #     if '\\include{' in text:
+    #         probe = '\\\\include{(.*?)}'
+    #         includes = re.findall(probe, text)
+    #
+    #         for include in includes:
+    #             project = False
+    #             try:
+    #                 if ":" in include:
+    #                     project, includeID = include.split(":")
+    #                     project = project.strip(' ')
+    #                     includeID = int(includeID.strip(" "))
+    #                 else:
+    #                     includeID = int(include.strip(' '))
+    #
+    #                 if project:
+    #                     includeContent = get_section_content(notebook, includeID)
+    #                 else:
+    #                     includeContent = self.get_section_content_without_backup(includeID)
+    #
+    #             except Exception:
+    #                 text = "<r>Error retrieving content for included sections</r>\n"+text 
+    #                 text = text.replace('\\include{{{}}}'.format(include), '<r>\\include{{{}}}</r>'.format(include))
+    #                 return text
+    #             if notebook:
+    #                 sectionIndicator = '<a href="/{0}/view_sections/{1}"><span class="badge badge-pill badge-info">section {1}</span></a><hr>'.format(notebook, includeID)
+    #             else:
+    #                 sectionIndicator = '<a href="/{0}/view_sections/{1}"><span class="badge badge-pill badge-info">section {1}</span></a><hr>'.format(self.notebookName, includeID)
+    #             includeContent = sectionIndicator + '\\begin{included-section-marker}\n' + includeContent + "\n\n" + "<hr>" + '\\end{included-section-marker}' + "<br>"
+    #             if notebook:
+    #                 text = text.replace('\\include{{{}:{}}}'.format(notebook, includeID), includeContent)
+    #             else:
+    #                 text = text.replace('\\include{{{{}}}}'.format(includeID), includeContent)
+    #     return text
 
 
 
@@ -350,7 +495,7 @@ class Renderer:
 #         count = 1
 #         for data in tables:
 #             cols, *rows = data.split('\n')
-#             table = '<input type="text" id="filterTableInput_{0}_{1}" onkeyup="dkFilterTable({0},{1})" placeholder="Filter table" title="Filter table"><br><br>'.format(ID, count)
+            # table = '<input type="text" id="filterTableInput_{0}_{1}" onkeyup="dkFilterTable({0},{1})" placeholder="Filter table" title="Filter table"><br><br>'.format(ID, count)
 #             table += '<table id="dkTable_{0}_{1}" class="table table-striped"><thead><tr>'.format(ID, count)
 #             for col in cols.split(separator):
 #                 table += '<th>{}</th>'.format(col)
