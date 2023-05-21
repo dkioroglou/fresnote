@@ -14,7 +14,9 @@ def add_new_section(project, notebook, chapter):
     try:
         newSectionID = notes.add_new_section(notebook, chapter)
     except Exception as error:
-        return '', 400
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while adding section.', 400
     return str(newSectionID), 200
 
 
@@ -33,19 +35,27 @@ def save_chapter_sections_order(project):
         sectionsOrder = [sectionsOrder.strip(' ')]
 
     sections = list()
-    for sec in sectionsOrder:
-        if sec:
-            if '-' in sec:
-                sections.append(int(sec.split('-')[0].strip(' ')))
-            else:
-                sections.append(int(sec.strip(' ')))
+    if sectionsOrder:
+        try:
+            for sec in sectionsOrder:
+                if sec:
+                    if '-' in sec:
+                        sections.append(int(sec.split('-')[0].strip(' ')))
+                    else:
+                        sections.append(int(sec.strip(' ')))
+        except Exception as error:
+            if current_app.config['logging']:
+                current_app.logger.error(error)
+            return 'Error while parsing section IDs.', 400
 
-    sectionsExist = notes.check_sections_ids_exist(sections)
-    if not sectionsExist:
-        return 'IDs not found.<br>Make sure IDs exist.<br>Order not updated.', 400
+        sectionsExist = notes.check_sections_ids_exist(sections)
+        if not sectionsExist:
+            return 'IDs not found.<br>Make sure IDs exist.<br>Order not updated.', 400
     try:
         notes.save_chapter_sections_order(notebook, chapter, sections)
-    except Exception:
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
         return 'Error while saving sections order.', 400
     return 'Sections order have updated.', 200
 

@@ -1,69 +1,59 @@
-function addNewNotebook(project) {
-  let notebook = prompt("Enter notebook name:", "");
-  if (notebook != null) {
+function flaskRequest({requestType, url, payload = null, toastParams = false} = {}) {
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+project+'/add_notebook', true);
+    request.open(requestType, url, true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                    'notebook': notebook,
-    }));
+    request.send(payload);
+
     request.onload = function() {
         responseStatus = request.status;
+        responseText = request.responseText;
         if (responseStatus == 200){
-            toastr.success(
-                  'New notebook added.',
-                  'Success',
-                {
-                  timeOut: 1000,
-                  fadeOut: 1000,
-                  onHidden: function () {
-                    window.location.href = "/serve/"+project+'/'+notebook+"/"+"First chapter";
-                 }
-               });
+            if (toastParams == false) {
+                toastr.success( responseText, 'Success');
+            } else {
+                toastr.success( responseText, 'Success', toastParams);
+            }
         } else {
-            toastr.error('Error while adding notebook. Notebook not added.', 'Error');
-            
+            toastr.error(responseText, 'Error');
         }
     };
-  } else {
-        toastr.error('Action cancelled.', 'Error');
-  }
+}
+
+
+function addNewNotebook(project) {
+    let notebook = prompt("Enter notebook name:", "");
+    if (notebook != null) {
+        requestType = "POST";
+        url = '/'+project+'/add_notebook';
+        payload = JSON.stringify({'notebook': notebook});
+        toastParams = {timeOut: 1000,
+                       fadeOut: 1000,
+                       onHidden: function () {
+                       window.location.href = "/serve/"+project+'/'+notebook+"/"+"First chapter";
+                      }};
+        flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
+        } else {
+            toastr.error('Action cancelled.', 'Error');
+        }
 }
 
 
 
 function addNewChapter(project, notebook) {
-  let chapter = prompt("Enter chapter name:", "");
-  if (chapter != null) {
-    const request = new XMLHttpRequest();
-    request.open('POST', '/'+project+'/add_chapter', true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                        'notebook': notebook,
-                        'chapter': chapter
-    }));
-    request.onload = function() {
-        responseStatus = request.status;
-        if (responseStatus == 200){
-            toastr.success(
-                  'New chapter added.',
-                  'Success',
-                {
-                  timeOut: 1000,
-                  fadeOut: 1000,
-                  onHidden: function () {
-                      window.location.href = "/serve/"+project+'/'+notebook+"/"+chapter;
-                  }
-                });
-        } else {
-            toastr.error('Error while adding chapter. Chapter not added.', 'Error');
-
-        }
-    };
-  } else {
+    let chapter = prompt("Enter chapter name:", "");
+    if (chapter != null) {
+        requestType = "POST";
+        url = '/'+project+'/add_chapter';
+        payload = JSON.stringify({ 'notebook': notebook, 'chapter': chapter });
+        toastParams = {timeOut: 1000,
+                        fadeOut: 1000,
+                        onHidden: function () {
+                          window.location.href = "/serve/"+project+'/'+notebook+"/"+chapter;
+                       }};
+        flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
+    } else {
         toastr.error('Action cancelled.', 'Error');
-
-  }
+    }
 }
 
 
@@ -104,32 +94,15 @@ function saveNotebook(project, previousNotebookTitle, chapter) {
     editButton.classList.remove('disabled');
     saveButton.classList.add('disabled');
 
-    const request = new XMLHttpRequest();
-    request.open('POST', '/'+project+'/change_notebook_title', true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                        'previousNotebookTitle': previousNotebookTitle,
-                        'newNotebookTitle': newNotebookTitle
-    }));
-
-    request.onload = function() {
-        responseStatus = request.status;
-        if (responseStatus == 200){
-            toastr.success(
-                  'Notebook renamed.',
-                  'Success',
-                {
-                  timeOut: 1000,
-                  fadeOut: 1000,
-                  onHidden: function () {
-                    window.location.href = "/serve"+'/'+project+'/'+newNotebookTitle+'/'+chapter;
-                 }
-               });
-        } else {
-            toastr.error('Error while renaming notebook.', 'Error');
-
-        }
-    };
+    requestType = "POST";
+    url = '/'+project+'/change_notebook_title';
+    payload = JSON.stringify({ 'previousNotebookTitle': previousNotebookTitle, 'newNotebookTitle': newNotebookTitle });
+    toastParams = {timeOut: 1000,
+                   fadeOut: 1000,
+                   onHidden: function () {
+                        window.location.href = "/serve"+'/'+project+'/'+newNotebookTitle+'/'+chapter;
+                  }};
+    flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
 }
 
 
@@ -169,33 +142,17 @@ function saveChapter(project, notebook, previousChapterTitle) {
     editButton.classList.remove('disabled');
     saveButton.classList.add('disabled');
 
-    const request = new XMLHttpRequest();
-    request.open('POST', '/'+project+'/change_chapter_title', true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                        'previousChapterTitle': previousChapterTitle,
-                        'newChapterTitle': newChapterTitle,
-                        'notebook': notebook
-    }));
-
-    request.onload = function() {
-        responseStatus = request.status;
-        if (responseStatus == 200){
-            toastr.success(
-                  'Chapter renamed.',
-                  'Success',
-                {
-                  timeOut: 1000,
-                  fadeOut: 1000,
-                  onHidden: function () {
-                    window.location.href = '/serve'+'/'+project+'/'+notebook+'/'+newChapterTitle;
-                 }
-               });
-        } else {
-            toastr.error('Error while renaming chapter.', 'Error');
-
-        }
-    };
+    requestType = "POST";
+    url = '/'+project+'/change_chapter_title';
+    payload = JSON.stringify({'previousChapterTitle': previousChapterTitle,
+                              'newChapterTitle': newChapterTitle,
+                              'notebook': notebook});
+    toastParams = {timeOut: 1000,
+                   fadeOut: 1000,
+                   onHidden: function () {
+                        window.location.href = '/serve'+'/'+project+'/'+notebook+'/'+newChapterTitle;
+                  }};
+    flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
 }
 
 
@@ -234,34 +191,17 @@ function saveSectionOrder(project, notebook, chapter) {
     editButton.classList.remove('disabled');
     saveButton.classList.add('disabled');
 
-    const request = new XMLHttpRequest();
-    request.open('POST', '/'+project+'/save_chapter_sections_order', true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                        'notebook': notebook,
-                        'chapter': chapter,
-                        'sections': orderSectionText
-    }));
-
-    request.onload = function() {
-        responseStatus = request.status;
-        responseText = request.responseText;
-        if (responseStatus == 200){
-            toastr.success(
-                  responseText,
-                  'Success',
-                {
-                  timeOut: 1000,
-                  fadeOut: 1000,
-                  onHidden: function () {
-                    document.location.reload(true);
-                 }
-               });
-        } else {
-            toastr.error(responseText, 'Error');
-
-        }
-    };
+    requestType = "POST";
+    url = '/'+project+'/save_chapter_sections_order';
+    payload = JSON.stringify({'notebook': notebook,
+                              'chapter': chapter,
+                              'sections': orderSectionText});
+    toastParams = {timeOut: 1000,
+                   fadeOut: 1000,
+                   onHidden: function () {
+                        document.location.reload(true);
+                  }};
+    flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
 }
 
 
@@ -747,40 +687,30 @@ function deleteSection(notebook, sectionID) {
 }
 
 
-function deleteChapter(notebook, projectName, chapterName) {
+function deleteChapter(project, notebook, chapter) {
     var confirmation = confirm("Permantly delete chapter?");
     if (confirmation == true) {
         var confirmation = confirm("Keep chapter sections?\nNote: Cancel deletes!");
         if (confirmation == true) {
-            const request = new XMLHttpRequest();
-            request.open('GET', '/'+notebook+'/delete_chapter_keep_sections/'+projectName+'/'+chapterName, true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            request.send(null);
-
-            request.onload = function() {
-                responseStatus = request.status;
-                if (responseStatus == 200){
-                    toastr.success( 'Deleted only chapter.', 'Success');
-                } else {
-                    toastr.error('Error while deleted chapter.', 'Error');
-                    
-                }
-            };
+            requestType = "GET";
+            url = '/'+project+'/delete_chapter_keep_sections/'+notebook+'/'+chapter;
+            payload = null;
+            toastParams = {timeOut: 1000,
+                           fadeOut: 1000,
+                           onHidden: function () {
+                           window.location.href = "/load/"+project;
+                          }};
+            flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
         } else {
-            const request = new XMLHttpRequest();
-            request.open('GET', '/'+notebook+'/delete_chapter_and_sections/'+projectName+'/'+chapterName, true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            request.send(null);
-
-            request.onload = function() {
-                responseStatus = request.status;
-                if (responseStatus == 200){
-                    toastr.success( 'Deleted chapter and sections.', 'Success');
-                } else {
-                    toastr.error('Error while deleted chapter and sections.', 'Error');
-                    
-                }
-            };
+            requestType = "GET";
+            url = '/'+notebook+'/delete_chapter_and_sections/'+projectName+'/'+chapterName;
+            payload = null;
+            toastParams = {timeOut: 1000,
+                           fadeOut: 1000,
+                           onHidden: function () {
+                           window.location.href = "/load/"+project;
+                          }};
+            flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
         }
     } else {
         toastr.error('Action cancelled.', 'Warning');
@@ -788,40 +718,30 @@ function deleteChapter(notebook, projectName, chapterName) {
 }
 
 
-function deleteProject(notebook, projectName) {
-    var confirmation = confirm("Permantly delete topic?");
+function deleteNotebook(project, notebook) {
+    var confirmation = confirm("Permantly delete notebook?");
     if (confirmation == true) {
-        var confirmation = confirm("Keep topic sections?\nNote: Cancel deletes!");
+        var confirmation = confirm("Keep notebook sections?\nNote: Cancel deletes!");
         if (confirmation == true) {
-            const request = new XMLHttpRequest();
-            request.open('GET', '/'+notebook+'/delete_project_keep_sections/'+projectName, true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            request.send(null);
-
-            request.onload = function() {
-                responseStatus = request.status;
-                if (responseStatus == 200){
-                    toastr.success( 'Deleted only topic.', 'Success');
-                } else {
-                    toastr.error('Error while deleted topic.', 'Error');
-                    
-                }
-            };
+            requestType = "GET";
+            url = '/'+project+'/delete_notebook_keep_sections/'+notebook;
+            payload = null;
+            toastParams = {timeOut: 1000,
+                           fadeOut: 1000,
+                           onHidden: function () {
+                           window.location.href = "/load/"+project;
+                          }};
+            flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
         } else {
-            const request = new XMLHttpRequest();
-            request.open('GET', '/'+notebook+'/delete_project_and_sections/'+projectName, true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            request.send(null);
-
-            request.onload = function() {
-                responseStatus = request.status;
-                if (responseStatus == 200){
-                    toastr.success( 'Deleted topic and sections.', 'Success');
-                } else {
-                    toastr.error('Error while deleted topic and sections.', 'Error');
-                    
-                }
-            };
+            requestType = "GET";
+            url = '/'+project+'/delete_notebook_and_sections/'+notebook;
+            payload = null;
+            toastParams = {timeOut: 1000,
+                           fadeOut: 1000,
+                           onHidden: function () {
+                           window.location.href = "/load/"+project;
+                          }};
+            flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
         }
     } else {
         toastr.error('Action cancelled.', 'Warning');

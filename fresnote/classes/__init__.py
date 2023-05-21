@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 import contextlib
 import sqlite3
 import json
@@ -36,7 +35,7 @@ class Projects:
                 'docs': docsPath,
                 'uploads': uploadsPath,
                 'sections': sectionsPath,
-                'db': dbPath
+                'db': dbPath,
                 }
 
         with open(self.configPath,"w") as outf:
@@ -78,7 +77,7 @@ class Notebook:
         self.config = configparser.ConfigParser()
         self.config.read(config)
 
-        self.project = project
+        self.project         = project
         self.projectPath     = Path(self.config.get(self.project, 'path'))
         self.projectDocs     = Path(self.config.get(self.project, 'docs'))
         self.projectUploads  = Path(self.config.get(self.project, 'uploads'))
@@ -129,6 +128,18 @@ class Notebook:
                 """
                 c.execute(query, (notebook, 'First chapter', json.dumps([]), today))
                 conn.commit()
+
+    
+    def notebook_chapter_exist(self, notebook, chapter):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = 'SELECT EXISTS(SELECT 1 FROM notebooks WHERE notebook=(?) AND chapter=(?))'
+                c.execute(query, (notebook, chapter))
+                result = c.fetchone()[0]
+        if result == 1:
+            return True
+        else:
+            return False
 
 
     def add_chapter(self, notebook, chapter):
@@ -267,3 +278,93 @@ class Notebook:
         return sections
 
 
+    def delete_notebook(self, notebook):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                DELETE FROM notebooks
+                WHERE notebook=(?)
+                """
+
+                c.execute(query, (notebook,))
+                conn.commit()
+
+
+    def delete_chapter_from_notebook(self, notebook, chapter):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                DELETE FROM notebooks
+                WHERE notebook=(?) AND chapter=(?)
+                """
+
+                c.execute(query, (notebook, chapter))
+                conn.commit()
+
+
+    def delete_section(self, ID):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                DELETE FROM sections
+                WHERE id=(?)
+                """
+                c.execute(query, (ID,))
+                conn.commit()
+
+                query = """
+                SELECT notebook, chapter, sections FROM notebooks
+                """
+                c.execute(query)
+                results = c.fetchall()
+
+                entriesToUpdate = list()
+                for res in results:
+                    notebook, chapter, sections = res
+                    sections = json.loads(sections)
+                    if int(ID) in sections:
+                        sections.remove(int(ID))
+                        entriesToUpdate.append((json.dumps(sections), project, chapter))
+
+                if entriesToUpdate:
+                    query = """
+                    UPDATE notebooks 
+                    SET sections=(?) 
+                    WHERE notebook=(?) AND chapter=(?)
+                    """
+                    c.executemany(query, entriesToUpdate)
+                    conn.commit()
+
+
+    def get_all_sections_ids_for_notebook(self, notebook):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                SELECT sections FROM notebooks 
+                WHERE notebook=(?)
+                """
+                c.execute(query, (notebook, ))
+                results = c.fetchall()
+
+        sectionsIDs = []
+        if results:
+            for res in results:
+                sectionsIDs.extend(json.loads(res[0]))
+        return sectionsIDs
+
+
+    def get_all_sections_ids_for_chapter(self, notebook, chapter):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                SELECT sections FROM notebooks 
+                WHERE notebook=(?) AND chapter=(?)
+                """
+                c.execute(query, (notebook, chapter))
+                sectionsIDs = c.fetchone()
+                
+        if sectionsIDs:
+            sectionsIDs = json.loads(sectionsIDs[0])
+        else:
+            sectionsIDs = []
+        return sectionsIDs

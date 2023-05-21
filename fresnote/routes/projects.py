@@ -31,11 +31,13 @@ def create():
     try:
         projects.create_project(projectPath)
     except Exception as error:
-        print(error)
+        if current_app.config['logging']:
+            current_app.logger.error(error)
         flash('Error while creating project.', 'danger')
         return redirect(url_for("projects.index"))
 
     project = Path(projectPath).name
+    flash('Project created successfully.', 'success')
     return redirect(url_for("projects.load", project=project))
 
 
@@ -69,10 +71,12 @@ def add_notebook(project):
 
     try:
         notes.add_notebook(notebook)
-    except Exception:
-        return '', 400
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while creating notebook.', 400
 
-    return '', 200
+    return 'Notebook created.', 200
 
 
 @projects.route('/<project>/add_chapter', methods=['POST'])
@@ -86,14 +90,20 @@ def add_chapter(project):
     try:
         notes.add_chapter(notebook, chapter)
     except Exception as error:
-        return '', 400
-    return '', 200
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while adding chapter.', 400
+    return 'Chapter added successfully.', 200
 
 
 @projects.route('/serve/<project>/<notebook>/<chapter>', methods=['GET', 'POST'])
 def serve(project, notebook, chapter):
     config = current_app.config['projects_config']
     notes = Notebook(project, config)
+    if not notes.notebook_chapter_exist(notebook, chapter):
+        flash('Notebook and chapter do not exist in database.', 'danger')
+        return redirect(url_for("projects.load", project=project, notebook=None))
+
     sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
     sections = notes.get_all_sections_for_chapter(notebook, chapter)
 
@@ -116,9 +126,11 @@ def change_notebook_title(project):
     try:
         notes.change_notebook_title(previousNotebookTitle, newNotebookTitle)
     except Exception as error:
-        return '', 400
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while renaming notebook.', 400
     
-    return '', 200
+    return 'Notebook renamed.', 200
 
 
 @projects.route('/<project>/change_chapter_title', methods=['POST'])
@@ -132,10 +144,101 @@ def change_chapter_title(project):
 
     try:
         notes.change_chapter_title(notebook, previousChapterTitle, newChapterTitle)
-    except Exception:
-        return '', 400
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while renaming chapter.', 400
     
-    return '', 200
+    return 'Chapter renamed.', 200
+
+
+@projects.route('/upload_file/<project>/<notebook>/<chapter>', methods=['POST'])
+def upload_file(project, notebook, chapter):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    pathToSave = Path(notes.projectUploads)
+
+    try:
+        for f in request.files.getlist('uploaded_files_for_project'):
+            f.save(pathToSave.joinpath(f.filename))
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        flash('Error while uploading files.', 'danger')
+        return redirect(url_for('projects.serve', project=project, notebook=notebook, chapter=chapter)) 
+
+    flash('Files uploaded successfully', 'success')
+    return redirect(url_for('projects.serve', project=project, notebook=notebook, chapter=chapter)) 
+
+
+@projects.route('/<project>/delete_notebook_keep_sections/<notebook>', methods=['GET'])
+def delete_notebook_keep_sections(project, notebook):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    try:
+        notes.delete_notebook(notebook)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while deleting notebook.', 400
+    return 'Notebook deleted.<br>Sections were kept.', 200
+
+
+@projects.route('/<project>/delete_notebook_and_sections/<notebook>', methods=['GET'])
+def delete_notebook_and_sections(project, notebook):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    sectionIDs = notes.get_all_sections_ids_for_notebook(notebook)
+    try:
+        notes.delete_notebook(notebook)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while deleting notebook.', 400
+    if sectionIDs:
+        for ID in sectionIDs:
+            try:
+                notes.delete_section(ID)
+            except Exception as error:
+                if current_app.config['logging']:
+                    current_app.logger.error(error)
+                return f'Error while deleting section: {ID}.', 400
+    return 'Notebook and sections deleted.', 200
+
+
+@projects.route('/<project>/delete_chapter_keep_sections/<notebook>/<chapter>', methods=['GET'])
+def delete_chapter_keep_sections(project, notebook, chapter):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    try:
+        notes.delete_chapter_from_notebook(notebook, chapter)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while deleting chapter.', 400
+    return 'Chapter deleted.<br>Sections were kept.', 200
+
+
+@projects.route('/<project>/delete_chapter_and_sections/notebook/chapter', methods=['GET'])
+def delete_chapter_and_sections(project, notebook, chapter):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    sectionIDs = notes.get_all_sections_ids_for_chapter(notebook, chapter)
+    try:
+        notes.delete_chapter_from_notebook(notebook, chapter)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while deleting notebook.', 400
+    if sectionIDs:
+        for ID in sectionIDs:
+            try:
+                notes.delete_section(ID)
+            except Exception as error:
+                if current_app.config['logging']:
+                    current_app.logger.error(error)
+                return f'Error while deleting section: {ID}.', 400
+    return 'Chapter and sections deleted.', 200
 
 
 @projects.route('/<project>/search', methods=['GET', 'POST'])
@@ -186,9 +289,6 @@ def search(project):
 #
 #
 
-@projects.route('/upload_file/<project>', methods=['POST'])
-def upload_file(project):
-    return "Upload file to project"
 
 # @project.route('/upload_file/<project>/<project>/<chapter>', methods=['POST'])
 # def upload_file_func(project, project, chapter):
@@ -246,47 +346,9 @@ def upload_file(project):
 #     return render_template('highlight_script_code.html', data={'sidebarData':sidebarData, 'sections':[]}, scriptcode=scriptCode, project=project) 
 #
 #
-# @project.route('/<project>/delete_chapter_keep_sections/<projectName>/<chapterName>', methods=['GET'])
-# def delete_chapter_keep_sections(project, projectName, chapterName):
-#     notes = project(project)
-#     try:
-#         notes.delete_chapter_from_project(projectName, chapterName)
-#     except Exception:
-#         return '', 400
-#     return '', 200
 #
 #
-# @project.route('/<project>/delete_chapter_and_sections/<projectName>/<chapterName>', methods=['GET'])
-# def delete_chapter_and_sections(project, projectName, chapterName):
-#     notes = project(project)
-#     sectionIDs = notes.get_all_sections_ids_for_chapter(projectName, chapterName)
-#     try:
-#         notes.delete_chapter_from_project(projectName, chapterName)
-#         for ID in sectionIDs:
-#             notes.delete_section(ID)
-#     except Exception:
-#         return '', 400
-#     return '', 200
 #
 #
-# @project.route('/<project>/delete_project_keep_sections/<projectName>', methods=['GET'])
-# def delete_project_keep_sections(project, projectName):
-#     notes = project(project)
-#     try:
-#         notes.delete_project(projectName, chapterName)
-#     except Exception:
-#         return '', 400
-#     return '', 200
 #
 #
-# @project.route('/<project>/delete_project_and_sections/<projectName>', methods=['GET'])
-# def delete_project_and_sections(project, projectName):
-#     notes = project(project)
-#     sectionIDs = notes.get_all_sections_ids_for_project(projectName)
-#     try:
-#         notes.delete_project(projectName)
-#         for ID in sectionIDs:
-#             notes.delete_section(ID)
-#     except Exception:
-#         return '', 400
-#     return '', 200
