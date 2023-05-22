@@ -1,10 +1,10 @@
 <div id="sectionsArea" class="container-fluid">
     {% for section in sections %}
     <div class='row'>
-        <div id="chapterSectionCard_{{ section['ID'] }}" class='col-md-12 mb-4 chapterSectionCard'>
+        <div id="chapterSectionCard_{{ section['ID'] }}" class='col-md-12 mb-3 chapterSectionCard'>
 
             <!-- Title -->
-            <div id="title_section_{{ section['ID'] }}" contenteditable="false">
+            <div class="fresnote-section-title" id="title_section_{{ section['ID'] }}" contenteditable="false">
 
                 <!-- Fold Button -->
                 <a class="btn btn-sm btn-outline-secondary float-right text-dark" data-toggle="collapse" href="#collapse_content_section_{{ section['ID'] }}" role="button" aria-expanded="false" aria-controls="collapse_content_section_{{ section['ID'] }}" onclick="toggleFoldState('{{ project }}', '{{ section['ID'] }}');">

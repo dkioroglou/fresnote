@@ -1,6 +1,7 @@
 from pathlib import Path
 import contextlib
 import sqlite3
+import shutil
 import json
 from collections import OrderedDict
 from datetime import datetime
@@ -215,6 +216,15 @@ class Notebook:
         return sectionID
 
 
+    def create_new_section_directory(self, sectionID: str):
+        sectionPath = self.projectSections.joinpath(sectionID)
+        if not sectionPath.exists():
+            sectionPath.mkdir(parents=True)
+            return True
+        else:
+            return False
+
+
     def check_sections_ids_exist(self, sectionsIDs):
         with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
             with contextlib.closing(conn.cursor()) as c:
@@ -269,10 +279,10 @@ class Notebook:
         if sectionsResults:
             render = Renderer()
             sections = render.convert_db_results_into_sections(notebook,
-                                                             chapter,
-                                                             sectionsResults,
-                                                             sectionsIDs,
-                                                             self.projectDB)
+                                                               chapter,
+                                                               sectionsResults,
+                                                               sectionsIDs,
+                                                               self.projectDB)
         else:
             sections = []
         return sections
@@ -334,6 +344,15 @@ class Notebook:
                     """
                     c.executemany(query, entriesToUpdate)
                     conn.commit()
+
+
+    def delete_section_directory(self, sectionID):
+        sectionPath = self.projectSections.joinpath(sectionID)
+        try:
+            shutil.rmtree(sectionPath)
+        except Exception:
+            return False
+        return True
 
 
     def get_all_sections_ids_for_notebook(self, notebook):
@@ -416,5 +435,30 @@ class Notebook:
                 WHERE id=(?)
                 """
                 c.execute(query, (tags, ID))
+                conn.commit()
+
+
+    def get_section_content(self, ID):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                SELECT content FROM sections 
+                WHERE id=(?)
+                """
+                c.execute(query, (ID,))
+                result = c.fetchone()
+        sectionContent = result[0]
+        return sectionContent
+
+
+    def save_section_content(self, ID, content):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE sections 
+                SET content=(?) 
+                WHERE id=(?)
+                """
+                c.execute(query, (content, ID))
                 conn.commit()
 

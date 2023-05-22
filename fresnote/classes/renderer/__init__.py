@@ -12,7 +12,7 @@ class Markdown:
     def render_markdown_bold_text_markups(self, text: str) -> str:
         """Converts markdown bold markups to html bold markups."""
         if "**" in text and text.count("**") % 2 == 0:
-            probe = '**(.*?)**'
+            probe = '\*\*(.*?)\*\*'
             boldTexts = re.findall(probe, text)
 
             for boldText in boldTexts:
@@ -23,12 +23,12 @@ class Markdown:
     def render_markdown_italics_text_markups(self, text: str) -> str:
         """Converts markdown italics markups to html italics markups."""
         if "__" in text and text.count("__") % 2 == 0:
-            probe = '**(.*?)**'
+            probe = '__(.*?)__'
             italicsTexts = re.findall(probe, text)
 
             for italicsText in italicsTexts:
                 renderedText = f"<i>{italicsText}</i>"
-                text = text.replace(f'**{italicsText}**', renderedText)
+                text = text.replace(f'__{italicsText}__', renderedText)
         return text
 
     def render_markdown_headers_markups(self, text: str) -> str:
@@ -46,75 +46,6 @@ class Markdown:
 
 
 class Renderer(Markdown):
-
-    def convert_db_results_into_sections(self, 
-                                         notebook: str, 
-                                         chapter: str, 
-                                         sectionsResults: List,
-                                         sectionsIDs: List,
-                                         db: str) -> List[Dict]:
-        """Converts results returned from the project database to a list of dictionaries. Each dictionary corresponds to a section with various markups being converted to html markups."""
-
-        def create_tags_list(tags: str) -> List:
-            if ',' in tags:
-                tags = [x.strip(' ') for x in tags.split(',')]
-            else:
-                tags = [tags.strip(' ')]
-            return tags
-
-        def convert_section_fields_to_dictionary(notebook: str, chapter: str, dbres: Tuple) -> Dict:
-            ID, section, tags, content, folded, creationDate = dbres
-            sectionDict = {
-                    "ID"      : ID,
-                    "notebook": notebook,
-                    "chapter" : chapter,
-                    "section" :  section,
-                    "tags"    : tags,
-                    "content" : content,
-                    "folded"  : folded,
-                    "date"    : creationDate
-                    }
-            return sectionDict
-
-        # tmp is temporary so that sections are added later based on order.
-        tmp = dict()
-        for dbres in sectionsResults:
-            sectionDict = convert_section_fields_to_dictionary(notebook, chapter, dbres)
-            sectionDict['tags'] = create_tags_list(sectionDict['tags'])
-            """
-            NOTES:
-                In the following steps the content of the section is broken down in lines based on newlines.
-                In each line, the markups are converted to html.
-
-                The splitlines(keepends=True) converts a string like:
-                    'This is line 1\n\nThis is line2'
-                to:
-                    ['This is line 1\n', '\n', 'This is line2']
-            """
-            renderedLines = list()
-            flags = {'order':[], 
-                     'counts': {'fold': 0},
-                     'errors': False
-                    }
-            if '\n' in sectionDict['content']:
-                contentLines = sectionDict['content'].splitlines(keepends=True)
-                for line in contentLines:
-                    line, flags = self.pass_line_through_renderers(line, flags, sectionDict['ID'])
-                    renderedLines.append(line)
-            else:
-                line, flags = self.pass_line_through_renderers(sectionDict['content'], flags, sectionDict['ID'])
-                renderedLines.append(line)
-
-            if flags['order'] or flags['errors']:
-                sectionDict['content'] = "<r>Errors while rendering section</r>\n"+sectionDict['content']
-            else:
-                sectionDict['content'] = ''.join(renderedLines)
-            tmp[sectionDict['ID']] = sectionDict
-        sections = list()
-        for sID in sectionsIDs:
-            sections.append(tmp[sID])
-        return sections
-
 
     def pass_line_through_renderers(self, line: str, flags: Dict, ID: int) -> Tuple[str, Dict]: 
 
@@ -189,6 +120,76 @@ class Renderer(Markdown):
         line = self.render_markdown_italics_text_markups(line)
 
         return (line, flags)
+
+    def convert_db_results_into_sections(self, 
+                                         notebook: str, 
+                                         chapter: str, 
+                                         sectionsResults: List,
+                                         sectionsIDs: List,
+                                         db: str) -> List[Dict]:
+        """Converts results returned from the project database to a list of dictionaries. Each dictionary corresponds to a section with various markups being converted to html markups."""
+
+        def create_tags_list(tags: str) -> List:
+            if ',' in tags:
+                tags = [x.strip(' ') for x in tags.split(',')]
+            else:
+                tags = [tags.strip(' ')]
+            return tags
+
+        def convert_section_fields_to_dictionary(notebook: str, chapter: str, dbres: Tuple) -> Dict:
+            ID, section, tags, content, folded, creationDate = dbres
+            sectionDict = {
+                    "ID"      : ID,
+                    "notebook": notebook,
+                    "chapter" : chapter,
+                    "section" :  section,
+                    "tags"    : tags,
+                    "content" : content,
+                    "folded"  : folded,
+                    "date"    : creationDate
+                    }
+            return sectionDict
+
+        # tmp is temporary so that sections are added later based on order.
+        tmp = dict()
+        for dbres in sectionsResults:
+            sectionDict = convert_section_fields_to_dictionary(notebook, chapter, dbres)
+            sectionDict['tags'] = create_tags_list(sectionDict['tags'])
+            """
+            NOTES:
+                In the following steps the content of the section is broken down in lines based on newlines.
+                In each line, the markups are converted to html.
+
+                The splitlines(keepends=True) converts a string like:
+                    'This is line 1\n\nThis is line2'
+                to:
+                    ['This is line 1\n', '\n', 'This is line2']
+            """
+            renderedLines = list()
+            flags = {'order':[], 
+                     'counts': {'fold': 0},
+                     'errors': False
+                    }
+            if '\n' in sectionDict['content']:
+                contentLines = sectionDict['content'].splitlines(keepends=True)
+                for line in contentLines:
+                    line, flags = self.pass_line_through_renderers(line, flags, sectionDict['ID'])
+                    renderedLines.append(line)
+            else:
+                line, flags = self.pass_line_through_renderers(sectionDict['content'], flags, sectionDict['ID'])
+                renderedLines.append(line)
+
+            if flags['order'] or flags['errors']:
+                sectionDict['content'] = "<r>Errors while rendering section</r>\n"+sectionDict['content']
+            else:
+                sectionDict['content'] = ''.join(renderedLines).replace('\n', '<br>')
+            tmp[sectionDict['ID']] = sectionDict
+        sections = list()
+        for sID in sectionsIDs:
+            sections.append(tmp[sID])
+        return sections
+
+
 
 
     # def replace_includes(self, text):

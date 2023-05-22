@@ -16,7 +16,11 @@ def add_new_section(project, notebook, chapter):
     except Exception as error:
         if current_app.config['logging']:
             current_app.logger.error(error)
-        return 'Error while adding section.', 400
+        return 'Error while adding section to database.', 400
+
+    # function returns False if directory exists, otherwise it returns True 
+    if not notes.create_new_section_directory(str(newSectionID)):
+        return f'Section directory {newSectionID} exists.', 400
     return str(newSectionID), 200
 
 
@@ -81,6 +85,7 @@ def toggle_fold_state(project, ID):
     config = current_app.config['projects_config']
     notes = Notebook(project, config)
     notes.toggle_fold_state_of_section(ID)
+    return '', 200
 
 
 @sections.route('/<project>/delete_section/<ID>', methods=['GET'])
@@ -92,7 +97,10 @@ def delete_section(project, ID):
     except Exception as error:
         if current_app.config['logging']:
             current_app.logger.error(error)
-        return 'Error while deteting section', 400
+        return 'Error while deteting section from database.', 400
+    # function return False if deleting fails otherwise it returns True
+    if not notes.delete_section_directory(ID):
+        return 'Error while deleting section directory.', 400
     return 'Section deleted.', 200
 
 
@@ -125,64 +133,35 @@ def save_section_tags(project):
     return 'Tags saved.', 200
 
 
-#
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-#
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @section.route('/<notebook>/content/<ID>', methods=['GET'])
-# def content_func(notebook, ID):
-#     notes = Notebook(notebook)
-#     content = notes.get_section_content(ID)
-#     return content
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @section.route('/<notebook>/save_section_content', methods=['POST'])
-# def save_section_content_func(notebook):
-#     notes = Notebook(notebook)
-#     data = request.get_json()
-#     sectionID = data['sectionID']
-#     sectionContent = data['sectionContent']
-#     
-#     try:
-#         notes.save_section_content(sectionID, sectionContent)
-#     except Exception:
-#         return '', 400
-#     return '', 200
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @section.route('/add_new_section/<notebook>/<project>/<chapter>', methods=['POST'])
-# def add_new_section_func(notebook, project, chapter):
-#     notes = Notebook(notebook)
-#     try:
-#         newSectionID = notes.add_new_section(project, chapter)
-#     except Exception as error:
-#         print(error)
-#         return '', 400
-#     return str(newSectionID), 200
-#
-#
+@sections.route('/<project>/get_content/<ID>', methods=['GET'])
+def get_content(project, ID):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    try:
+        content = notes.get_section_content(ID)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return '', 400
+    return content
+
+
+@sections.route('/<project>/save_section_content', methods=['POST'])
+def save_section_content(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    sectionID = data['sectionID']
+    sectionContent = data['sectionContent']
+    try:
+        notes.save_section_content(sectionID, sectionContent)
+    except Exception:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return '', 400
+    return '', 200
+
+
 # """
 # NOTES:
 #     STAYS - CHANGED

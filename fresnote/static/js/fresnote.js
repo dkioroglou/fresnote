@@ -366,10 +366,7 @@ function saveContentFromQuill() {
 
 
 
-
-
-// Functions for section content
-function editContent(notebook, sectionID) {
+function editContent(project, sectionID) {
     var contentSectionID = "content_section_"+sectionID;
     var contentSection = document.getElementById(contentSectionID);
 
@@ -388,7 +385,7 @@ function editContent(notebook, sectionID) {
     editButton.classList.add('disabled');
 
     const request = new XMLHttpRequest();
-    request.open('GET', '/'+notebook+'/content/'+sectionID, true);
+    request.open('GET', '/'+project+'/get_content/'+sectionID, true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(null);
     request.onload = function() {
@@ -540,7 +537,7 @@ function editContent(notebook, sectionID) {
                 var contentText = quill.getText();
 
                 const request = new XMLHttpRequest();
-                request.open('POST', '/'+notebook+'/save_section_content', true);
+                request.open('POST', '/'+project+'/save_section_content', true);
                 request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
                 request.send(JSON.stringify({
                                     'sectionID': sectionID,
@@ -557,49 +554,61 @@ function editContent(notebook, sectionID) {
                     }
                 };
             }
+
+            var cancelButton = document.createElement('button');
+            cancelButton.innerText = 'Cancel';
+            cancelButton.classList.add('btn', 'btn-warning', 'mt-4', 'ml-4');
+            emptyDiv.appendChild(cancelButton);
+
+            cancelButton.onclick = function() {
+                toastr.error('Action cancelled.', 'Error');
+                setTimeout(function() {
+                  document.location.reload();
+                }, 2000);
+            };
         };
 }
 
 
  
-function saveContent(sectionID) {
-    var contentSectionID = "content_section_"+sectionID;
-    var contentSection = document.getElementById(contentSectionID);
-
-    var contentID = "content_"+sectionID;
-    var content = document.getElementById(contentID);
-    var contentText = content.innerText;
-
-    var editButtonID = "editContentButton_"+sectionID;
-    var editButton = document.getElementById(editButtonID);
-
-    var saveButtonID = "saveContentButton_"+sectionID;
-    var saveButton = document.getElementById(saveButtonID);
-
-    contentSection.style.border = "";
-    contentSection.setAttribute('contenteditable', 'false');
-
-    editButton.classList.remove('disabled');
-    saveButton.classList.add('disabled');
-
-    const request = new XMLHttpRequest();
-    request.open('POST', '/save_section_content', true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                        'sectionID': sectionID,
-                        'sectionContent': contentText
-    }));
-
-    request.onload = function() {
-        responseStatus = request.status;
-        if (responseStatus == 200){
-            document.location.reload(true);
-        } else {
-            toastr.error('Error while saving content.', 'Error');
-            
-        }
-    };
-}
+// function saveContent(sectionID) {
+//     var contentSectionID = "content_section_"+sectionID;
+//     var contentSection = document.getElementById(contentSectionID);
+//
+//     var contentID = "content_"+sectionID;
+//     var content = document.getElementById(contentID);
+//     var contentText = content.innerText;
+//
+//     var editButtonID = "editContentButton_"+sectionID;
+//     var editButton = document.getElementById(editButtonID);
+//
+//     var saveButtonID = "saveContentButton_"+sectionID;
+//     var saveButton = document.getElementById(saveButtonID);
+//
+//     contentSection.style.border = "";
+//     contentSection.setAttribute('contenteditable', 'false');
+//
+//     editButton.classList.remove('disabled');
+//     saveButton.classList.add('disabled');
+//
+//     const request = new XMLHttpRequest();
+//     request.open('POST', '/save_section_content', true);
+//     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+//     request.send(JSON.stringify({
+//                         'sectionID': sectionID,
+//                         'sectionContent': contentText
+//     }));
+//
+//     request.onload = function() {
+//         responseStatus = request.status;
+//         if (responseStatus == 200){
+//             document.location.reload(true);
+//         } else {
+//             toastr.error('Error while saving content.', 'Error');
+//             
+//         }
+//     };
+// }
 
 
 // NOTES: STAYS - changed

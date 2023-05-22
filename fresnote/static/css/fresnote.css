@@ -16,6 +16,7 @@ pre {
     font-family: 'Roboto Mono' !important;
     font-size: .85em;
     line-height: 1.4;
+    color: #5D91B4;
 }
 
 .btn-outline-light {
@@ -58,44 +59,41 @@ summary {
 
 
 h3, .h3 {
-    font-size: 1.5625em; !important;
+    font-size: 1.2em; !important;
     font-weight: 300 !important;
     line-height: 1.4;
-    margin: 1.6em 0 0.64em;
-    margin-top: 1.6em;
-    margin-right: 0px;
-    margin-bottom: 0.64em;
-    margin-left: 0px;
     color: #a25f5f;
 }
 
 h4, .h4 {
-    font-size: 1.2em; !important;
-    font-weight: bold 300 !important;
-    line-height: 1.4;
+    font-size: 1em; !important;
+    font-weight: 300 !important;
     color: #a25f5f;
 }
 
 h2, .h2 {
-    font-size: 2.0em; !important;
+    font-size: 1.5em; !important;
     font-weight: 300 !important;
-    line-height: 1.4;
-    margin: 1.6em 0 0.64em;
-    margin-top: 1.6em;
-    margin-right: 0px;
-    margin-bottom: 0.64em;
-    margin-left: 0px;
     color: #a25f5f;
 }
 
 h1, .h1 {
-    font-size: 1.5625em; !important;
+    font-size: 2.0em; !important;
     font-weight: 300 !important;
     color: #a25f5f;
 }
 
 hr {
   border-top: 2px solid rgb(162 96 96);
+}
+
+.fresnote-section-title {
+    font-size: 1.4em; !important;
+    color: #a25f5f;
+}
+
+.ql-editor {
+  white-space: pre-line!important;
 }
 
 #projectSection {
@@ -112,35 +110,6 @@ hr {
 
 .tagSection {
     height: 3rem;
-}
-
-.admonition {
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid transparent;
-    background: -webkit-linear-gradient(left, transparent 0%, #160731 0%, #1B293C 100%);
-    border-radius: 4px;
-    text-align: left;
-}
-
-.admonition.note { /* csslint allow: adjoining-classes */
-    color: #00f2ff;
-    border-color: #bce8f1;
-}
-
-.admonition.warning {
-    color: #ffd500;
-    border-color: #fbeed5;
-}
-
-.admonition.danger {
-    color: #ff5454;
-    border-color: #eed3d7;
-}
-
-.admonition-title {
-    font-weight: bold;
-    text-align: left;
 }
 
 
