@@ -17,7 +17,7 @@ def main(config, port, logger):
 
     if logger:
         app.config['logging'] = True
-        logging.basicConfig(filename='fresnote.log', encoding='utf-8')
+        logging.basicConfig(filename='fresnote.log')
         log = logging.getLogger('werkzeug')
         log.setLevel(logging.ERROR)
     else:

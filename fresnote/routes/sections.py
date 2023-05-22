@@ -60,50 +60,79 @@ def save_chapter_sections_order(project):
     return 'Sections order have updated.', 200
 
 
-# @section.route('/<notebook>/save_section_title', methods=['POST'])
-# def save_section_title_func(notebook):
-#     notes = Notebook(notebook)
-#     data = request.get_json()
-#     sectionID = data['sectionID']
-#     sectionTitle = data['sectionTitle']
+@sections.route('/<project>/save_section_title', methods=['POST'])
+def save_section_title(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    sectionID = data['sectionID']
+    sectionTitle = data['sectionTitle']
+
+    try:
+        notes.save_section_title(sectionID, sectionTitle)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while saving section title.', 400
+    return 'Section title saved.', 200
+
+@sections.route('/<project>/toggle_fold_state/<ID>', methods=['GET'])
+def toggle_fold_state(project, ID):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    notes.toggle_fold_state_of_section(ID)
+
+
+@sections.route('/<project>/delete_section/<ID>', methods=['GET'])
+def delete_section(project, ID):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    try:
+        notes.delete_section(ID)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while deteting section', 400
+    return 'Section deleted.', 200
+
+
+@sections.route('/<project>/get_tags/<ID>', methods=['GET'])
+def get_tags(project, ID):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    try:
+        tags = notes.get_section_tags(ID)
+    except Exception as error:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error getting tags.'
+    return tags
+
+
+@sections.route('/<project>/save_section_tags', methods=['POST'])
+def save_section_tags(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    data = request.get_json()
+    sectionID = data['sectionID']
+    sectionTags = data['sectionTags']
+    try:
+        notes.save_section_tags(sectionID, sectionTags)
+    except Exception:
+        if current_app.config['logging']:
+            current_app.logger.error(error)
+        return 'Error while saving tags.', 400
+    return 'Tags saved.', 200
+
+
 #
-#     try:
-#         notes.save_section_title(sectionID, sectionTitle)
-#     except Exception:
-#         return '', 400
-#     return '', 200
+#
 #
 #
 # """
 # NOTES:
 #     STAYS - CHANGED
 # """
-# @section.route('/<notebook>/save_section_tags', methods=['POST'])
-# def save_section_tags_func(notebook):
-#     notes = Notebook(notebook)
-#     data = request.get_json()
-#     sectionID = data['sectionID']
-#     sectionTags = data['sectionTags']
-#
-#     try:
-#         notes.save_section_tags(sectionID, sectionTags)
-#     except Exception:
-#         return '', 400
-#     return '', 200
-#
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @section.route('/<notebook>/tags/<ID>', methods=['GET'])
-# def tags_func(notebook, ID):
-#     notes = Notebook(notebook)
-#     tags = notes.get_section_tags(ID)
-#
-#     return tags
 #
 #
 #
@@ -158,26 +187,12 @@ def save_chapter_sections_order(project):
 # NOTES:
 #     STAYS - CHANGED
 # """
-# @section.route('/<notebook>/toggle_fold_state/<ID>', methods=['GET'])
-# def toggle_fold_state_func(notebook, ID):
-#     notes = Notebook(notebook)
-#     notes.toggle_fold_state_of_section(ID)
-#     return '', 204
 #
 #
 # """
 # NOTES:
 #     STAYS - CHANGED
 # """
-# @section.route('/<notebook>/delete_section/<ID>', methods=['GET'])
-# def delete_section_func(notebook, ID):
-#     notes = Notebook(notebook)
-#     try:
-#         notes.delete_section(ID)
-#     except Exception:
-#         return '', 400
-#     # empty response
-#     return '', 200
 #
 #
 # """

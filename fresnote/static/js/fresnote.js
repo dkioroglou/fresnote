@@ -9,9 +9,9 @@ function flaskRequest({requestType, url, payload = null, toastParams = false} = 
         responseText = request.responseText;
         if (responseStatus == 200){
             if (toastParams == false) {
-                toastr.success( responseText, 'Success');
+                toastr.success(responseText, 'Success');
             } else {
-                toastr.success( responseText, 'Success', toastParams);
+                toastr.success(responseText, 'Success', toastParams);
             }
         } else {
             toastr.error(responseText, 'Error');
@@ -224,7 +224,7 @@ function editTitle(sectionID) {
 }
 
 
-function saveTitle(notebook, sectionID) {
+function saveTitle(project, sectionID) {
     var titleSectionID = "title_section_"+sectionID;
     var titleSection = document.getElementById(titleSectionID);
 
@@ -244,23 +244,12 @@ function saveTitle(notebook, sectionID) {
     editButton.classList.remove('disabled');
     saveButton.classList.add('disabled');
 
-    const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/save_section_title', true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({
-                        'sectionID': sectionID,
-                        'sectionTitle': titleText
-    }));
-
-    request.onload = function() {
-        responseStatus = request.status;
-        if (responseStatus == 200){
-            toastr.success( 'Section title saved.', 'Success');
-        } else {
-            toastr.error('Error while saving title.', 'Error');
-            
-        }
-    };
+    requestType = "POST";
+    url = '/'+project+'/save_section_title';
+    payload = JSON.stringify({'sectionID': sectionID,
+                              'sectionTitle': titleText});
+    toastParams = false;
+    flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
 }
 
 
@@ -268,7 +257,7 @@ function saveTitle(notebook, sectionID) {
 
 
 // Functions for section tags
-function editTags(notebook, sectionID) {
+function editTags(project, sectionID) {
     var tagsSectionID = "tags_section_"+sectionID;
     var tagsSection = document.getElementById(tagsSectionID);
 
@@ -289,7 +278,7 @@ function editTags(notebook, sectionID) {
 
 
     const request = new XMLHttpRequest();
-    request.open('GET', '/'+notebook+'/tags/'+sectionID, true);
+    request.open('GET', '/'+project+'/get_tags/'+sectionID, true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(null);
     request.onload = function() {
@@ -298,8 +287,7 @@ function editTags(notebook, sectionID) {
 }
 
 
-
-function saveTags(notebook, sectionID) {
+function saveTags(project, sectionID) {
     var tagsSectionID = "tags_section_"+sectionID;
     var tagsSection = document.getElementById(tagsSectionID);
 
@@ -327,7 +315,7 @@ function saveTags(notebook, sectionID) {
 
 
     const request = new XMLHttpRequest();
-    request.open('POST', '/'+notebook+'/save_section_tags', true);
+    request.open('POST', '/'+project+'/save_section_tags', true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(JSON.stringify({
                         'sectionID': sectionID,
@@ -336,8 +324,9 @@ function saveTags(notebook, sectionID) {
 
     request.onload = function() {
         responseStatus = request.status;
+        responseText = request.responseText;
         if (responseStatus == 200){
-            toastr.success( 'Section tags saved.', 'Success');
+            toastr.success( responseText, 'Success');
             tags.textContent = '';
             for (var i = 0; i < newTags.length; i++) {
                 var newTag = document.createElement("span");
@@ -346,7 +335,7 @@ function saveTags(notebook, sectionID) {
                 tags.appendChild(newTag);
             }
         } else {
-            toastr.error('Error while saving tags', 'Error');
+            toastr.error( responseText, 'Error');
 
         }
     };
@@ -613,8 +602,6 @@ function saveContent(sectionID) {
 }
 
 
-
-
 // NOTES: STAYS - changed
 function addNewSection(project, notebook, chapter) {
     const request = new XMLHttpRequest();
@@ -633,54 +620,36 @@ function addNewSection(project, notebook, chapter) {
 }
 
 
-
-function toggleFoldState(notebook, sectionID) {
+function toggleFoldState(project, sectionID) {
     const request = new XMLHttpRequest();
-    request.open('GET', '/'+notebook+'/toggle_fold_state/'+sectionID, true);
+    request.open('GET', '/'+project+'/toggle_fold_state/'+sectionID, true);
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     request.send(null);
 }
 
 
-
-function deleteSection(notebook, sectionID) {
+function deleteSection(project, sectionID) {
     var confirmation = confirm("Permantly delete section?");
     if (confirmation == true) {
-        const request = new XMLHttpRequest();
-        request.open('GET', '/'+notebook+'/delete_section/'+sectionID, true);
-        request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-        request.send(null);
+        requestType = "GET";
+        url = '/'+project+'/delete_section/'+sectionID;
+        payload = null;
+        toastParams = {timeOut: 300,
+                       fadeOut: 300,
+                       onHidden: function () {
+                            // window.location.reload();
+                            let CardAnimation = anime({
+                                              targets: '#chapterSectionCard_'+sectionID,
+                                              opacity: [1,0],
+                                              duration: 500,
+                                              easing: 'easeInOutSine'
+                                            });
 
-        request.onload = function() {
-            responseStatus = request.status;
-            if (responseStatus == 200){
-                toastr.success(
-                      'Section deleted.',
-                      'Success',
-                    {
-                      timeOut: 300,
-                      fadeOut: 300,
-                      onHidden: function () {
-                        // window.location.reload();
-                        let CardAnimation = anime({
-                                          targets: '#chapterSectionCard_'+sectionID,
-                                          opacity: [1,0],
-                                          duration: 500,
-                                          easing: 'easeInOutSine'
-                                        });
-
-                        setTimeout(function(){ 
-                            var sectionCard = document.getElementById('chapterSectionCard_'+sectionID);
-                            sectionCard.style.display = "none";
-                        }, 1000);
-                     }
-                   });
-            } else {
-                toastr.error('Error while deleting section.', 'Error');
-                
-            }
-        };
-
+                            setTimeout(function(){ 
+                                var sectionCard = document.getElementById('chapterSectionCard_'+sectionID);
+                                sectionCard.style.display = "none";
+                            }, 1000);}}
+        flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
     } else {
         toastr.error('Action cancelled.', 'Warning');
     }

@@ -324,7 +324,7 @@ class Notebook:
                     sections = json.loads(sections)
                     if int(ID) in sections:
                         sections.remove(int(ID))
-                        entriesToUpdate.append((json.dumps(sections), project, chapter))
+                        entriesToUpdate.append((json.dumps(sections), notebook, chapter))
 
                 if entriesToUpdate:
                     query = """
@@ -368,3 +368,53 @@ class Notebook:
         else:
             sectionsIDs = []
         return sectionsIDs
+
+
+    def save_section_title(self, ID, section):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE sections 
+                SET section=(?) 
+                WHERE id=(?)
+                """
+                c.execute(query, (section, ID))
+                conn.commit()
+
+
+    def toggle_fold_state_of_section(self, ID):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE sections
+                SET folded = CASE WHEN folded = 0 THEN 1 ELSE 0 END
+                WHERE id=(?)
+                """
+                c.execute(query, (ID,))
+                conn.commit()
+
+
+    def get_section_tags(self, ID):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                SELECT tags FROM sections 
+                WHERE id=(?)
+                """
+                c.execute(query, (ID,))
+                result = c.fetchone()
+        sectionTags = result[0]
+        return sectionTags
+
+
+    def save_section_tags(self, ID, tags):
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                UPDATE sections 
+                SET tags=(?) 
+                WHERE id=(?)
+                """
+                c.execute(query, (tags, ID))
+                conn.commit()
+
