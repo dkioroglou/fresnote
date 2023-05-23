@@ -1,0 +1,1 @@
+Flask>=2.0.2; python_version >= '3.8'
