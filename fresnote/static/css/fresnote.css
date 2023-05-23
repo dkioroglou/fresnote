@@ -19,6 +19,13 @@ pre {
     color: #5D91B4;
 }
 
+p {
+  line-height: 1.5;
+  font-size: 1.1em;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 .btn-outline-light {
     background-color: #a25f5f;
     border-color: #a25f5f;
@@ -40,21 +47,6 @@ pre {
 
 .card-header {
     background-color: rgb(5,71,96,.04) !important;
-}
-
-
-details {
-    background: #f0f0f0;
-    margin-bottom: 2rem;
-    padding: .5rem 1rem;
-    border: 2px solid transparent;
-    border-color: #cbe4e9;
-}
-
-summary {
-    color: #a25f5f;
-    font-weight: bold 300;
-    font-size: 1.1em;
 }
 
 
@@ -110,27 +102,6 @@ hr {
 
 .tagSection {
     height: 3rem;
-}
-
-
-/* Text red color */
-r {
-    color: #ed1313;
-    font-weight: bold 300;
-}
-
-
-/* Text orange color */
-o {
-    color: #c16b10;
-    font-weight: bold 300;
-}
-
-
-/* Text green color */
-g {
-    color: #249724;
-    font-weight: bold 300;
 }
 
 
