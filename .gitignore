@@ -8,7 +8,7 @@ node_modules/
 dist/
 
 # Generated from setup.py
-fresnote.egg-info
+fresnote.egg-info/
 
 # Compiled Java class files
 *.class
