@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory, current_app
 from pathlib import Path
 from fresnote.classes import Projects
 from fresnote.classes import Notebook
@@ -244,6 +244,24 @@ def delete_chapter_and_sections(project, notebook, chapter):
 @projects.route('/<project>/search', methods=['GET', 'POST'])
 def search(project):
     return "This is search bar"
+
+@projects.route('/<project>/<directory>/<path:filename>', methods=['GET'])
+def get_path(project, directory, filename):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    filePath = Path(notes.config.get(notes.project, directory))
+    # fileExtention = os.path.splitext(filename)[-1]
+    # docExtensions = ['.docx', '.doc', '.xls', '.xlsx', '.csv', '.tsv', '.tex', '.bib']
+    #
+    # if fileExtention and fileExtention in docExtensions:
+    #     if fileExtention == '.tex':
+    #         os.system("gnome-terminal -- bash -c \"cd {} && nvim {}\" ".format(os.path.dirname(filePath), filePath))
+    #     else:
+    #         os.system(f'xdg-open {filePath}')
+    #     return ('', 204)
+    # else:
+    #     return send_from_directory(notes.notebookDir, filename)
+    return send_from_directory(filePath, filename)
 
 
 # @project.route('/<project>/search', methods=['GET', 'POST'])

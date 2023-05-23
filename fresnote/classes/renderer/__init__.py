@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 from typing import List, Tuple, Dict
 
@@ -68,109 +69,187 @@ class Latex:
                 text = text.replace(f'\\green{{{greenText}}}', renderedText)
         return text
 
+    def render_latex_link_markups(self, text: str) -> str:
+        """Convert latex style link to html style <a> tag."""
+        if "\\link{" in text:
+            probe = '\\\\link{(.*?)}'
+            links = re.findall(probe, text)
+            for link in links:
+                if ',' in link:
+                    referenceText, url = link.split(',', 1)
+                    referenceText = referenceText.strip()
+                    url = url.strip()
+                    if url.startswith('/'):
+                        filename = Path(url).name
+                        extension = Path(url).suffix
+                        if extension in self.icons:
+                            renderedText = '<a href="{}"><img id="todoIcon" src="/static/icons/{}" alt="drawing" width="20"/> {}</a>'.format(url, self.icons[extension], referenceText)
+                        else:
+                            renderedText = '<a href="{}">{}</a>'.format(url, referenceText)
+                    else:
+                        renderedText = '<a href="{}">{}</a>'.format(url, referenceText)
+                else:
+                    if link.startswith('/'):
+                        filename = Path(link).name
+                        extension = Path(link).suffix
+                        if extension in self.icons:
+                            renderedText = '<a href="{}"><img id="todoIcon" src="/static/icons/{}" alt="drawing" width="20"/> {}</a>'.format(link, self.icons[extension], filename)
+                        else:
+                            renderedText = '<a href="{}">{}</a>'.format(link, filename)
+                    else:
+                        renderedText = '<a href="{}">{}</a>'.format(link, link)
+                text = text.replace(f'\\link{{{link}}}', renderedText)
+        return text
 
 
 class Renderer(Markdown, Latex):
 
-    def pass_line_through_renderers(self, line: str, flags: Dict, ID: int) -> Tuple[str, Dict]: 
+    def __init__(self):
+        self.ID = ''
+        self.line = ''
+        self.renderedLines = []
+        self.sectionID = ''
+        self.flags= {'order':[], 
+                     'counts': {'fold': 0},
+                     'errors': []
+                    }
 
-        def render_flag(flag, flags, *args):
-            if flags['order'] and flags['order'][-1] == flag:
-                    flags['order'].pop()
-                    if args:
-                        return (flags_end_markup[flag].format(*args), flags)
-                    else:
-                        return (flags_end_markup[flag], flags)
-            else:
-                flags['order'].append(flag)
-                if args:
-                    return (flags_start_markup[flag].format(*args), flags)
-                else:
-                    return (flags_start_markup[flag], flags)
+        """
+        NOTES:
+            A markup that extends multiple lines has start and end.
+            Then, text is rendered within the start and end markups.
+            Based on the markup, the text within the start and end points is rendered differently.
+        """
 
-        flags_start_markup = {
+        # Define start html for markups
+        self.renderStart_markup = {
                 'code': '<pre>',
-                'fold': '<a class="btn btn-outline-light text-white col-12" data-toggle="collapse" href="#subsection_fold_{1}_{0}" role="button" aria-expanded="false" aria-controls="subsection_fold_{1}_{0}">'\
-                        '{2}'\
+                'fold': '<a class="btn btn-outline-light text-white col-12" data-toggle="collapse" href="#subsection_fold_{count}_{ID}" role="button" aria-expanded="false" aria-controls="subsection_fold_{count}_{ID}">'\
+                        '{title}'\
                         '</a>'\
                         '<div class="row">'\
                         '<div class="col-12">'\
-                        '<div class="collapse" id="subsection_fold_{1}_{0}">'\
+                        '<div class="collapse" id="subsection_fold_{count}_{ID}">'\
                         '<br>',
                 'img': '<div class="container-fluid">'
         }
 
-        flags_end_markup = {
+        # Define end html for markups
+        self.renderEnd_markup = {
                 'code': '</pre>',
                 'fold': '</div></div></div><br>',
                 'img' : '</div>'
         }
 
-        if not line.lstrip().strip("\n"):
-            if flags['order'] and flags['order'][-1] == 'code':
-                return (line, flags)
-            return (line.lstrip().strip('\n'), flags)
+        self.icons = {
+                '.pdf' : 'file-pdf-regular.svg',
+                '.docx': 'file-alt-regular.svg',
+                '.doc' : 'file-alt-regular.svg',
+                '.xls' : 'file-alt-regular.svg',
+                '.xlsx': 'file-alt-regular.svg',
+                '.csv' : 'file-csv-solid.svg',
+                '.txt' : 'file-alt-regular.svg',
+                '.tex' : 'file-alt-regular.svg',
+                '.bib' : 'file-alt-regular.svg',
+                '.tsv' : 'file-csv-solid.svg'
+        }
 
-        # Specify start markups
-        if line.startswith('```'):
-            try:
-                line, flags = render_flag('code', flags) 
-            except Exception:
-                flags['errors'] = True
-            return (line, flags)
+    def initialize_renderer(self):
+        self.ID = ''
+        self.line = ''
+        self.renderedLines = []
+        self.sectionID = ''
+        self.flags= {'order':[], 
+                     'counts': {'fold': 0},
+                     'errors': []
+                    }
 
-        if line.startswith('\\img{'):
-            try:
-                line, flags = render_flag('img', flags) 
-            except Exception:
-                flags['errors'] = True
-            return (line, flags)
 
-        if line.startswith('\\fold{'):
-            try:
-                title = line.replace("\\fold{", "")
-                flags['counts']['fold'] += 1
-                args = [ID, flags['counts']['fold'], title]  
-                line, flags = render_flag('fold', flags, *args) 
-            except Exception:
-                flags['errors'] = True
-            return (line, flags)
+    def is_last_flag(self, flag: str) -> bool:
+        if self.flags['order'] and self.flags['order'][-1] == flag:
+            return True
+        else:
+            return False
 
-        # Specify end markups
-        if line.lstrip().startswith('}'):
-            if flags['order'] and flags['order'][-1] == 'code':
-                return (line, flags)
+
+    def renderLine(self) -> None: 
+        if self.line.startswith('```'):
+            flag = 'code'
+        elif self.line.startswith('\\img{'):
+            flag = 'img'
+        elif self.line.startswith('\\fold{'):
+            flag = 'fold'
+        elif self.line.lstrip().startswith('}'):
+            flag = 'end'
+        else:
+            flag = ''
+
+
+        if flag == "code":
+            if self.is_last_flag("code"):
+                self.flags['order'].pop()
+                self.renderedLines.append(self.renderEnd_markup[flag])
             else:
-                try:
-                    line, flags = render_flag(flags['order'][-1], flags)
-                except Exception:
-                    flags['errors'] = True
-                return (line, flags)
-
-        # Don't format text inside code-block.
-        if flags['order'] and flags['order'][-1] == 'code':
-            return (line, flags)
-
-        if flags['order'] and flags['order'][-1] == 'img':
-            line = lstrip()
-            try:
-                caption, url, width, height = line.split(',')
-            except Exception:
-                line = '<span style="color:#FF0000";>Image should have caption, url, width, height<br>'+line
-            line = '<a class="btn btn-secondary mt-2" href="{url}" role="button">'\
-                    '{caption}<br>'\
-                    '<img src="{url}" width="{width}" height="{height}">'\
-                    '</a>'.format(caption=caption, url=url, width=width, height=height)
-
-        line = self.render_markdown_headers_markups(line)
-        line = self.render_markdown_bold_text_markups(line)
-        line = self.render_markdown_italics_text_markups(line)
-        line = self.render_markdown_ruler_markups(line)
-        line = self.render_latex_green_text_markups(line)
-        line = self.render_latex_red_text_markups(line)
-        line = "<p>"+line+"</p>"
-
-        return (line, flags)
+                self.flags['order'].append(flag)
+                self.renderedLines.append(self.renderStart_markup[flag])
+        elif flag == "fold":
+                self.flags['order'].append(flag)
+                title = self.line.replace("\\fold{", "")
+                self.flags['counts']['fold'] += 1
+                args = {"ID":self.ID, "count":self.flags['counts']['fold'], "title":title}
+                self.renderedLines.append(self.renderStart_markup['fold'].format(**args))
+        elif flag == "img":
+                self.flags['order'].append(flag)
+                self.renderedLines.append(self.renderStart_markup[flag])
+        elif flag == "end":
+            if self.is_last_flag('code'):
+                self.renderedLines.append(self.line)
+            elif not self.flags["order"]:
+                self.flags['errors'].append("End markup.")
+                line = self.line+'<span style="color:#FF0000";>Extra ending markup found'
+                self.renderedLines.append(line)
+            else:
+                lastFlag = self.flags['order'].pop() 
+                self.renderedLines.append(self.renderEnd_markup[lastFlag])
+        else:
+            if self.is_last_flag("code"):
+                self.renderedLines.append(self.line)
+            elif self.line.strip().strip("\n"):
+                if self.is_last_flag('img'):
+                    try:
+                        fields = self.line.split(",")
+                        if len(fields) == 2:
+                            caption, url = fields
+                            width, height = '200', '100'
+                            caption = caption.strip()
+                            url     = url.strip()
+                        else:
+                            caption, url, width, height = fields
+                            caption = caption.strip()
+                            url     = url.strip()
+                            width   = width.strip()
+                            height  = height.strip()
+                    except Exception:
+                        self.flags['errors'].append('img')
+                        line = '<span style="color:#FF0000";>Image should have caption, url, width, height<br>'+self.line
+                    else:
+                        line = '<a class="btn btn-secondary mt-2 ml-2" href="{url}" role="button">'\
+                               '{caption}<br>'\
+                               '<img src="{url}" width="{width}" height="{height}">'\
+                               '</a>'.format(caption=caption, url=url, width=width, height=height)
+                    finally:
+                        self.renderedLines.append(line)
+                else:
+                    self.line = self.line.strip("\n")
+                    self.line = self.render_markdown_headers_markups(self.line)
+                    self.line = self.render_markdown_bold_text_markups(self.line)
+                    self.line = self.render_markdown_italics_text_markups(self.line)
+                    self.line = self.render_markdown_ruler_markups(self.line)
+                    self.line = self.render_latex_green_text_markups(self.line)
+                    self.line = self.render_latex_red_text_markups(self.line)
+                    self.line = self.render_latex_link_markups(self.line)
+                    self.line = "<p>"+self.line+"</p>"
+                    self.renderedLines.append(self.line)
 
 
     def convert_db_results_into_sections(self, 
@@ -217,30 +296,26 @@ class Renderer(Markdown, Latex):
                 to:
                     ['This is line 1\n', '\n', 'This is line2']
             """
-            renderedLines = list()
-            flags = {'order':[], 
-                     'counts': {'fold': 0},
-                     'errors': False
-                    }
+            self.ID = sectionDict['ID']
             if '\n' in sectionDict['content']:
                 contentLines = sectionDict['content'].splitlines(keepends=True)
                 for line in contentLines:
-                    line, flags = self.pass_line_through_renderers(line, flags, sectionDict['ID'])
-                    if line:
-                        renderedLines.append(line)
+                    self.line = line
+                    self.renderLine()
             else:
-                line, flags = self.pass_line_through_renderers(sectionDict['content'], flags, sectionDict['ID'])
-                if line:
-                    renderedLines.append(line)
+                self.line = sectionDict['content']
+                self.renderLine()
 
+            htmlRendering = ''.join(self.renderedLines)
             # Produce error if markups are left in flags or close markups were not found.
-            if flags['order'] or flags['errors']:
-                errorText = '<span style="color:#FF0000";>Errors while rendering section. Check {} markups</span><br>'.format(flags['order'])
-                textToRender = ''.join(renderedLines)
-                sectionDict['content'] = errorText + textToRender
+            if self.flags['order'] or self.flags['errors']:
+                errorText = '<span style="color:#FF0000";>Errors {} while rendering section. Check {} markups.</span><br>'.format(self.flags['errors'], self.flags['order'])
+                sectionDict['content'] = errorText + htmlRendering
             else:
-                sectionDict['content'] = ''.join(renderedLines)
+                sectionDict['content'] = htmlRendering
             tmp[sectionDict['ID']] = sectionDict
+            self.initialize_renderer()
+
         sections = list()
         for sID in sectionsIDs:
             sections.append(tmp[sID])
