@@ -90,13 +90,7 @@ class Renderer(Markdown, Latex):
 
         flags_start_markup = {
                 'code': '<pre>',
-                'fold': '<a class="btn btn-outline-light text-white col-12" data-toggle="collapse" href="#subsection_fold_{1}_{0}" role="button" aria-expanded="false" aria-controls="subsection_fold_{1}_{0}">'\
-                        '{2}'\
-                        '</a>'\
-                        '<div class="row">'\
-                        '<div class="col-12">'\
-                        '<div class="collapse" id="subsection_fold_{1}_{0}">'\
-                        '<br>',
+                'fold': '<a class="btn btn-outline-light text-white col-12" data-toggle="collapse" href="#subsection_fold_{1}_{0}" role="button" aria-expanded="false" aria-controls="subsection_fold_{1}_{0}">{2}</a><div <div class="row"> <div class="col-12"> <div class="collapse" id="subsection_fold_{1}_{0}"><br>',
                 'img': '<div class="container-fluid">'
         }
 
@@ -153,14 +147,9 @@ class Renderer(Markdown, Latex):
 
         if flags['order'] and flags['order'][-1] == 'img':
             line = lstrip()
-            try:
-                caption, url, width, height = line.split(',')
-            except Exception:
-                line = '<span style="color:#FF0000";>Image should have caption, url, width, height<br>'+line
-            line = '<a class="btn btn-secondary mt-2" href="{url}" role="button">'\
-                    '{caption}<br>'\
-                    '<img src="{url}" width="{width}" height="{height}">'\
-                    '</a>'.format(caption=caption, url=url, width=width, height=height)
+
+            line = '<img src="{}" width="{}" height="{}">'
+Smoothed function,/docs/uploads/gproc_20230506.png,200,100
 
         line = self.render_markdown_headers_markups(line)
         line = self.render_markdown_bold_text_markups(line)
