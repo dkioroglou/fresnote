@@ -21,7 +21,7 @@ pre {
 
 p {
   line-height: 1.5;
-  font-size: 1.1em;
+  font-size: 0.9em;
   text-align: justify;
   text-justify: inter-word;
 }
@@ -77,6 +77,10 @@ h1, .h1 {
 
 hr {
   border-top: 2px solid rgb(162 96 96);
+}
+
+ul li {
+  font-size: 0.9em; !important;
 }
 
 .fresnote-section-title {
@@ -137,6 +141,9 @@ hr {
 blockquote {
     padding-left: 1em;
     border-left: 0.5ex solid #c56e6e;
+    font-size: 0.9em;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 .card-body {

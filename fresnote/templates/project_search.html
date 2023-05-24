@@ -13,12 +13,25 @@
 
 <div class='row mt-4 mb-4'>
     <div class='col-12'>
+        <form onsubmit="return false">
             <div class="input-group mb-3">
                 <input  id="searchBarQuery" name="searchBarQuery" type="text" autocomplete="off" class="form-control" placeholder="Enter search term">
                 <div class="input-group-append">
-                    <a class="btn btn-warning" role="button" onclick="searchBar('{{ project }}');">Search</a>
+                    <button class="btn btn-warning" type="submit" onclick="searchBar('{{ project }}');">Search</button>
                 </div>
             </div>
+        </form>
     </div>
 </div>
 
+<!-- <div class='row mt-4 mb-4'> -->
+<!--     <div class='col-12'> -->
+<!--             <div class="input-group mb-3"> -->
+<!--                 <input  id="searchBarQuery" name="searchBarQuery" type="text" autocomplete="off" class="form-control" placeholder="Enter search term"> -->
+<!--                 <div class="input-group-append"> -->
+<!--                     <a class="btn btn-warning" role="button" onclick="searchBar('{{ project }}');">Search</a> -->
+<!--                 </div> -->
+<!--             </div> -->
+<!--     </div> -->
+<!-- </div> -->
+<!---->

@@ -744,18 +744,4 @@ function searchBar(project) {
             toastr.error(responseText, 'Error');
         }
     };
-    // let chapter = prompt("Enter chapter name:", "");
-    // if (chapter != null) {
-    //     requestType = "POST";
-    //     url = '/'+project+'/add_chapter';
-    //     payload = JSON.stringify({ 'notebook': notebook, 'chapter': chapter });
-    //     toastParams = {timeOut: 1000,
-    //                     fadeOut: 1000,
-    //                     onHidden: function () {
-    //                       window.location.href = "/serve/"+project+'/'+notebook+"/"+chapter;
-    //                    }};
-    //     flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
-    // } else {
-    //     toastr.error('Action cancelled.', 'Error');
-    // }
 }

@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from typing import List, Tuple, Dict
 
-class Markdown:
+class InlineRenderers:
 
     def render_markdown_bold_text_markups(self, text: str) -> str:
         """Converts markdown bold markups to html bold markups."""
@@ -44,10 +44,7 @@ class Markdown:
             text = "<hr>"
         return text
 
-
-class Latex:
-
-    def render_latex_red_text_markups(self, text: str) -> str:
+    def render_red_text_markups(self, text: str) -> str:
         """Converts latex style red text to html text style tag."""
         if "\\red{" in text:
             probe = '\\\\red{(.*?)}'
@@ -58,7 +55,7 @@ class Latex:
                 text = text.replace(f'\\red{{{redText}}}', renderedText)
         return text
 
-    def render_latex_green_text_markups(self, text: str) -> str:
+    def render_green_text_markups(self, text: str) -> str:
         """Converts latex style green text to html text style tag."""
         if "\\green{" in text:
             probe = '\\\\green{(.*?)}'
@@ -69,7 +66,7 @@ class Latex:
                 text = text.replace(f'\\green{{{greenText}}}', renderedText)
         return text
 
-    def render_latex_link_markups(self, text: str) -> str:
+    def render_link_markups(self, text: str) -> str:
         """Convert latex style link to html style <a> tag."""
         if "\\link{" in text:
             probe = '\\\\link{(.*?)}'
@@ -101,9 +98,24 @@ class Latex:
                 text = text.replace(f'\\link{{{link}}}', renderedText)
         return text
 
+    def render_icon_markups(self, text: str) -> str:
+        icons = {
+                'todo' : '<img id="todoIcon" src="/static/icons/circle-regular.svg" alt="drawing" width="20"/>',
+                'done' : '<img id="todoIcon" src="/static/icons/check-circle-regular.svg" alt="drawing" width="20"/>',
+                'error': '<img id="todoIcon" src="/static/icons/bug-solid.svg" alt="drawing" width="20"/>'
+                }
+        for icon in icons.keys():
+            if f"\{icon}" in text:
+                text = text.replace(f"\{icon}", icons[icon])
+        return text
+
+    def render_blockquote_markups(self, text: str) -> str:
+        if text.startswith(">"):
+            text = "<blockquote>{}</blockquote>".format(text[2:])
+        return text
 
 
-class Renderer(Markdown, Latex):
+class Renderer():
 
     def __init__(self):
         self.ID = ''
@@ -132,14 +144,16 @@ class Renderer(Markdown, Latex):
                         '<div class="col-12">'\
                         '<div class="collapse" id="subsection_fold_{count}_{ID}">'\
                         '<br>',
-                'img': '<div class="container-fluid">'
+                'img' : '<div class="container-fluid">',
+                'list': '<ul>'
         }
 
         # Define end html for markups
         self.renderEnd_markup = {
                 'code': '</pre>',
                 'fold': '</div></div></div><br>',
-                'img' : '</div>'
+                'img' : '</div>',
+                'list'  : '</ul>'
         }
 
         self.icons = {
@@ -154,6 +168,11 @@ class Renderer(Markdown, Latex):
                 '.bib' : 'file-alt-regular.svg',
                 '.tsv' : 'file-csv-solid.svg'
         }
+
+        
+        self.renderers = InlineRenderers()
+        self.renderersMethods = [method for method in dir(self.renderers) if callable(getattr(self.renderers, method)) and not method.startswith("__")]
+        
 
     def initialize_renderer(self):
         self.ID = ''
@@ -172,6 +191,11 @@ class Renderer(Markdown, Latex):
         else:
             return False
 
+    def pass_line_through_renderers(self) -> str:
+        self.line = self.line.strip("\n")
+        for method in self.renderersMethods:
+            render = getattr(self.renderers, method)
+            self.line = render(self.line)
 
     def renderLine(self) -> None: 
         if self.line.startswith('```'):
@@ -180,6 +204,8 @@ class Renderer(Markdown, Latex):
             flag = 'img'
         elif self.line.startswith('\\fold{'):
             flag = 'fold'
+        elif self.line.startswith('\\list{'):
+            flag = 'list'
         elif self.line.lstrip().startswith('}'):
             flag = 'end'
         else:
@@ -202,6 +228,9 @@ class Renderer(Markdown, Latex):
         elif flag == "img":
                 self.flags['order'].append(flag)
                 self.renderedLines.append(self.renderStart_markup[flag])
+        elif flag == "list":
+                self.flags['order'].append(flag)
+                self.renderedLines.append(self.renderStart_markup[flag])
         elif flag == "end":
             if self.is_last_flag('code'):
                 self.renderedLines.append(self.line)
@@ -216,7 +245,18 @@ class Renderer(Markdown, Latex):
             if self.is_last_flag("code"):
                 self.renderedLines.append(self.line)
             elif self.line.strip().strip("\n"):
-                if self.is_last_flag('img'):
+                if self.is_last_flag('list'):
+                    if self.line.startswith("* "):
+                        self.line = self.line.replace("* ", '')
+                    else:
+                        if self.line.startswith("\\") and self.renderedLines[-1].startswith("<ul>"):
+                            self.renderedLines[-1] = '<ul style="list-style: none;padding-left:1em;">'
+                        elif not self.line.startswith("\\") and self.renderedLines[-1].startswith("<ul>"):
+                            self.renderedLines[-1] = '<ul style="list-style: none;padding-left:1.4em;">'
+                    self.pass_line_through_renderers()
+                    self.line = f'<li>{self.line}</li>'
+                    self.renderedLines.append(self.line)
+                elif self.is_last_flag('img'):
                     try:
                         fields = self.line.split(",")
                         if len(fields) == 2:
@@ -241,14 +281,7 @@ class Renderer(Markdown, Latex):
                     finally:
                         self.renderedLines.append(line)
                 else:
-                    self.line = self.line.strip("\n")
-                    self.line = self.render_markdown_headers_markups(self.line)
-                    self.line = self.render_markdown_bold_text_markups(self.line)
-                    self.line = self.render_markdown_italics_text_markups(self.line)
-                    self.line = self.render_markdown_ruler_markups(self.line)
-                    self.line = self.render_latex_green_text_markups(self.line)
-                    self.line = self.render_latex_red_text_markups(self.line)
-                    self.line = self.render_latex_link_markups(self.line)
+                    self.pass_line_through_renderers()
                     self.line = "<p>"+self.line+"</p>"
                     self.renderedLines.append(self.line)
 
