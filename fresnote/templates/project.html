@@ -6,41 +6,53 @@
 {% block content %}
 <div class="container-fluid">
         <div class='col-md-12 col-sm-12' style="float: none; margin: 0 auto;">
-            {% if not notebook %}
-                <div class='row'>
-                    <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
-                        <div class='col-md-12'>
-                            <h1>Choose notebook</h1>
+            {% if sidebar %}
+                {% if search %}
+                    {% include 'project_search.html' %}
+
+                    <div class='row'>
+                        {% include 'project_notebook_sections.html' %}
+                    </div>
+                {% elif not notebook %}
+                    <div class='row'>
+                        <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
+                            <div class='col-md-12'>
+                                <h1>Choose notebook</h1>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-            {% elif sections|length == 0 %}
-                <div class='row'>
-                    {% include 'project_panel.html' %}
-                </div>
-
-                <div class='row'>
-                    <div class='col-md-12'>
-                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Add new section</button>
+                {% elif sections|length == 0 %}
+                    <div class='row'>
+                        {% include 'project_panel.html' %}
                     </div>
-                </div>
 
+                    <div class='row'>
+                        <div class='col-md-12'>
+                            <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Add new section</button>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <div class='row'>
+                        {% include 'project_panel.html' %}
+                    </div>
+
+                    <div class='row'>
+                        {% include 'project_notebook_sections.html' %}
+                    </div>
+
+                    <div class='row'>
+                        <div class='col-md-12'>
+                            <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Add new section</button>
+                        </div>
+                    </div>
+
+                {% endif %}
             {% else %}
-                <div class='row'>
-                    {% include 'project_panel.html' %}
-                </div>
-
                 <div class='row'>
                     {% include 'project_notebook_sections.html' %}
                 </div>
-
-                <div class='row'>
-                    <div class='col-md-12'>
-                        <button type="button" class="btn btn-secondary btn-lg btn-block mb-4" onclick="addNewSection('{{ project }}', '{{ notebook }}', '{{ chapter }}');">Add new section</button>
-                    </div>
-                </div>
-
             {% endif %}
         </div>
 </div>

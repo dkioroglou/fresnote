@@ -6,6 +6,7 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 import configparser
+from typing import List
 from fresnote.classes.renderer import Renderer
 
 
@@ -426,6 +427,34 @@ class Notebook:
         return sectionTags
 
 
+    def get_sections_based_on_IDs(self, sectionsIDs: List) -> List:
+        if len(sectionsIDs) > 1:
+            queryIDs = ','.join([str(x) for x in sectionsIDs])
+        else:
+            queryIDs = str(sectionsIDs[0])
+        with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+            with contextlib.closing(conn.cursor()) as c:
+                query = """
+                SELECT * from sections 
+                WHERE id in ({})
+                """.format(queryIDs)
+
+                c.execute(query)
+                sectionsResults = c.fetchall()
+
+        if sectionsResults:
+            render = Renderer()
+            notebook, chapter = ("", "")
+            sections = render.convert_db_results_into_sections(notebook,
+                                                               chapter,
+                                                               sectionsResults,
+                                                               sectionsIDs,
+                                                               self.projectDB)
+        else:
+            sections = []
+        return sections
+
+
     def save_section_tags(self, ID, tags):
         with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
             with contextlib.closing(conn.cursor()) as c:
@@ -461,4 +490,60 @@ class Notebook:
                 """
                 c.execute(query, (content, ID))
                 conn.commit()
+
+
+    def get_sections_based_on_search_bar_query(self, queryTerm):
+        IDs = []
+        if ":" not in queryTerm:
+            lookupCols = ['section', 'tags', 'content']
+            connector = "AND"
+        elif "or:" in queryTerm and not '-or:' in queryTerm:
+            lookupCols = ['section', 'tags', 'content']
+            queryTerm = queryTerm.split(":")[-1].strip()
+            connector = "OR"
+        elif "-or:" in queryTerm:
+            lookupCols = [queryTerm.split("-or:")[0].strip()]
+            queryTerm = queryTerm.split(":")[-1].strip()
+            connector = "OR"
+        else:
+            lookupCols = [queryTerm.split(":")[0].strip()]
+            queryTerm = queryTerm.split(":")[-1].strip()
+            connector = "AND"
+
+        if len(lookupCols) == 1 and lookupCols[0] == 'id':
+            IDs = [int(x.strip()) for x in queryTerm.split(' ') if x]
+            sections = self.get_sections_based_on_IDs(IDs)
+        else:
+            """
+            NOTES:
+                 query should look like the following:
+                 ( col1 LIKE term1 OR ... OR colN LIKE term1) CONNECTOR ( col1 LIKE term2 OR ... OR colN LIKE term2)
+            """
+            terms = [t.strip() for t in queryTerm.split(' ')]
+            query = "SELECT id FROM sections WHERE "
+            queryParts = list()
+            for term in terms:
+                tmp = list()
+                for col in lookupCols:
+                    tmp.append(f'{col} LIKE "%{term}%"')
+                if len(tmp) == 1:
+                    queryParts.append('(' + tmp[0] + ')')
+                else:
+                    queryParts.append('(' + " OR ".join(tmp) + ')')
+
+            if len(queryParts) == 1:
+                query += queryParts[0]
+            else:
+                query += f" {connector} ".join(queryParts)
+
+            with contextlib.closing(sqlite3.connect(self.projectDB)) as conn:
+                with contextlib.closing(conn.cursor()) as c:
+                    c.execute(query)
+                    IDs = c.fetchall()
+            if IDs:
+                IDs = [res[0] for res in IDs]
+                sections = self.get_sections_based_on_IDs(IDs)
+            else:
+                sections = []
+        return sections
 

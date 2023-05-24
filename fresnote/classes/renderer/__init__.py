@@ -102,6 +102,7 @@ class Latex:
         return text
 
 
+
 class Renderer(Markdown, Latex):
 
     def __init__(self):
@@ -273,7 +274,7 @@ class Renderer(Markdown, Latex):
                     "ID"      : ID,
                     "notebook": notebook,
                     "chapter" : chapter,
-                    "section" :  section,
+                    "section" : section,
                     "tags"    : tags,
                     "content" : content,
                     "folded"  : folded,

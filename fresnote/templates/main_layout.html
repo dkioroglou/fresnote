@@ -57,62 +57,76 @@
 
 <div class="wrapper">
         <!-- Sidebar  -->
-        <nav id="sidebar">
-            {% if sidebarData|length > 0 %}
-                <ul class="list-unstyled components">
-                    {% for notebook in sidebarData %}
-                        <li id="sideBarli">
-                            <a href="#notebook_{{ sidebarData[notebook]['notebookID'] }}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">{{ notebook }} </a>
-                    
-                            <ul class="collapse list-unstyled" id="notebook_{{ sidebarData[notebook]['notebookID'] }}">
-                                {% if sidebarData[notebook]['chapters']|length > 0 %}
-                                    {% for chapter in sidebarData[notebook]['chapters'] %}
-                                        <li id="sideBarli">
-                                            <a href="{{ url_for('projects.serve', project=project, notebook=notebook, chapter=chapter) }}">{{ chapter }}</a>
-                                        </li>
-                                    {% endfor %}
-                                {% endif %}
+        {% if sidebar %}
+            <nav id="sidebar">
+                {% if sidebarData|length > 0 %}
+                    <ul class="list-unstyled components">
+                        {% for notebook in sidebarData %}
+                            <li id="sideBarli">
+                                <a href="#notebook_{{ sidebarData[notebook]['notebookID'] }}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">{{ notebook }} </a>
+                        
+                                <ul class="collapse list-unstyled" id="notebook_{{ sidebarData[notebook]['notebookID'] }}">
+                                    {% if sidebarData[notebook]['chapters']|length > 0 %}
+                                        {% for chapter in sidebarData[notebook]['chapters'] %}
+                                            <li id="sideBarli">
+                                                <a href="{{ url_for('projects.serve', project=project, notebook=notebook, chapter=chapter) }}">{{ chapter }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    {% endif %}
 
-                                <a class="btn btn-sm btn-outline-info text-dark mb-5 mt-3 pl-0" role="button" onclick="addNewChapter('{{ project }}', '{{ notebook }}');">New chapter</a>
-                            </ul>
+                                    <a class="btn btn-sm btn-outline-info text-dark mb-5 mt-3 pl-0" role="button" onclick="addNewChapter('{{ project }}', '{{ notebook }}');">New chapter</a>
+                                </ul>
 
 
-                        </li>
-                    {% endfor %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <ul class="list-unstyled CTAs">
+                    <li>
+                        <!-- TODO: change function addNewProject to addNewNotebook and pass argument project -->
+                        <a class="btn btn-sm btn-info text-white mb-4" role="button" onclick="addNewNotebook('{{ project }}');">New notebook</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-sm btn-success text-white" role="button" href="{{ url_for('projects.search', project=project) }}">Search</a>
+                    </li>
                 </ul>
-            {% endif %}
-            <ul class="list-unstyled CTAs">
-                <li>
-                    <!-- TODO: change function addNewProject to addNewNotebook and pass argument project -->
-                    <a class="btn btn-sm btn-info text-white mb-4" role="button" onclick="addNewNotebook('{{ project }}');">New notebook</a>
-                </li>
-                <li>
-                    <a class="btn btn-sm btn-success text-white" role="button" href="{{ url_for('projects.search', project=project) }}">Search</a>
-                </li>
-            </ul>
-        </nav>
+            </nav>
+        {% endif %}
 
         <!-- Page Content  -->
         <div id="content">
 
-            <nav class="navbar navbar-expand-lg navbar-light mybg-light">
-                <div class="container-fluid">
-                    <button type="button" id="sidebarCollapse" class="btn btn-info">
-                        <span>Notebooks</span>
-                    </button>
-                    <a class="btn btn-secondary text-white" role="button" href="{{ url_for('projects.index') }}">Change project</a>
-                </div>
-            </nav>
+            {% if sidebar %}
+                <nav class="navbar navbar-expand-lg navbar-light mybg-light">
+                    <div class="container-fluid">
+                        <button type="button" id="sidebarCollapse" class="btn btn-info">
+                            <span>Notebooks</span>
+                        </button>
+                        <a class="btn btn-secondary text-white" role="button" href="{{ url_for('projects.index') }}">Change project</a>
+                    </div>
+                </nav>
 
-            <div class="container-fluid">
-                <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
-                    <div class='col-md-12'>
-                        <div class='row mb-2 d-flex justify-content-center'>
-                            <h3 class="text-info" id="projectSection">Project: {{ project }}</h3>
+                <div class="container-fluid">
+                    <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
+                        <div class='col-md-12'>
+                            <div class='row mb-2 d-flex justify-content-center'>
+                                <h3 class="text-info" id="projectSection">Project: {{ project }}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="container-fluid">
+                    <div class='col-md-10 col-sm-12' style="float: none; margin: 0 auto;">
+                        <div class='col-md-12'>
+                            <div class='row mb-2 d-flex justify-content-center'>
+                                <h3 class="text-info" id="projectSection">Sections view: {{ project }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
 
             {% block content %}{% endblock %}
         </div>

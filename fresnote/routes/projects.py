@@ -54,6 +54,8 @@ def load(project, notebook):
     notes = Notebook(project, config)
     sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
     return render_template('project.html', 
+                           sidebar=True,
+                           search=False,
                            sidebarData=sidebarData,
                            project=project, 
                            notebook=notebook, 
@@ -108,10 +110,33 @@ def serve(project, notebook, chapter):
     sections = notes.get_all_sections_for_chapter(notebook, chapter)
 
     return render_template('project.html', 
+                           sidebar=True,
                            sidebarData=sidebarData,
                            project=project, 
                            notebook=notebook, 
                            chapter=chapter,
+                           sections=sections)
+
+
+@projects.route('/<project>/view/<sectionIDs>', methods=['GET', 'POST'])
+def view(project, sectionIDs):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+
+    if ',' in sectionIDs:
+        sectionIDs = sectionIDs.split(',')
+    else:
+        sectionIDs = [sectionIDs]
+    sectionIDs = [int(x) for x in sectionIDs]
+    sections = notes.get_sections_based_on_IDs(sectionIDs)
+
+    return render_template('project.html', 
+                           sidebar=False,
+                           search=False,
+                           sidebarData=[],
+                           project=project, 
+                           notebook="", 
+                           chapter="",
                            sections=sections)
 
 
@@ -241,10 +266,6 @@ def delete_chapter_and_sections(project, notebook, chapter):
     return 'Chapter and sections deleted.', 200
 
 
-@projects.route('/<project>/search', methods=['GET', 'POST'])
-def search(project):
-    return "This is search bar"
-
 @projects.route('/<project>/<directory>/<path:filename>', methods=['GET'])
 def get_path(project, directory, filename):
     config = current_app.config['projects_config']
@@ -264,29 +285,84 @@ def get_path(project, directory, filename):
     return send_from_directory(filePath, filename)
 
 
-# @project.route('/<project>/search', methods=['GET', 'POST'])
-# def search_func(project):
-#     notes = project(project)
-#
-#     if request.method == 'POST':
-#         query = request.form.get("searchBarQuery")
-#         sections = notes.get_sections_based_on_search_bar_query(query)
-#
-#         sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-#
-#         if sections:
-#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
-#         else:
-#             flash('No sections found', 'danger')
-#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
-#     else:
-#         sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-#
-#         sections = []
-#         if sections:
-#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
-#         else:
-#             return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+@projects.route('/<project>/search', defaults={'sectionIDs': None}, methods=['GET', 'POST'])
+@projects.route('/<project>/search/<sectionIDs>', methods=['GET', 'POST'])
+def search(project, sectionIDs):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+
+    sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
+
+    if request.method == "GET" and not sectionIDs:
+        return render_template('project.html', 
+                               sidebar=True,
+                               search=True,
+                               sidebarData=sidebarData,
+                               project=project, 
+                               notebook=None, 
+                               chapter=None,
+                               sections=[])
+    elif request.method == 'POST' and not sectionIDs:
+        data = request.get_json()
+        query = data['query']
+        sections = notes.get_sections_based_on_search_bar_query(query)
+        if sections:
+            return ",".join([str(sec['ID']) for sec in sections]), 200
+        else:
+            return "No sections found.", 400
+    else:
+        if ',' in sectionIDs:
+            sectionIDs  = [int(x) for x in sectionIDs.split(",")]
+        else:
+            sectionIDs = [int(sectionIDs)]
+        sections = notes.get_sections_based_on_IDs(sectionIDs)
+        return render_template('project.html', 
+                               sidebar=True,
+                               search=True,
+                               sidebarData=sidebarData,
+                               project=project, 
+                               notebook=None, 
+                               chapter=None,
+                               sections=sections)
+
+    # elif request.meth
+    #
+    # sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
+    #
+    #     query = request.form.get("searchBarQuery")
+    #     sections = notes.get_sections_based_on_search_bar_query(query)
+    #     if not sections:
+    #         flash('No sections found', 'danger')
+    #         return '', 204
+    # else:
+    #     sections = []
+    # return render_template('project.html', 
+    #                        sidebar=True,
+    #                        search=True,
+    #                        sidebarData=sidebarData,
+    #                        project=project, 
+    #                        notebook=None, 
+    #                        chapter=None,
+    #                        sections=sections)
+    #
+    # if request.method == 'POST':
+    #     query = request.form.get("searchBarQuery")
+    #
+    #     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+    #
+    #     if sections:
+    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
+    #     else:
+    #         flash('No sections found', 'danger')
+    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
+    # else:
+    #     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
+    #
+    #     sections = []
+    #     if sections:
+    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
+    #     else:
+    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
 #
 #
 # """

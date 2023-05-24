@@ -725,3 +725,37 @@ function deleteNotebook(project, notebook) {
         toastr.error('Action cancelled.', 'Warning');
     }
 }
+
+
+function searchBar(project) {
+    var searchBarID = "searchBarQuery";
+    var query = document.getElementById(searchBarID).value;
+    const request = new XMLHttpRequest();
+    request.open("POST", '/'+project+"/search", true);
+    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.send(JSON.stringify({'query': query}));
+
+    request.onload = function() {
+        responseStatus = request.status;
+        responseText = request.responseText;
+        if (responseStatus == 200){
+            window.location.href = "/"+project+"/search/"+responseText;
+        } else {
+            toastr.error(responseText, 'Error');
+        }
+    };
+    // let chapter = prompt("Enter chapter name:", "");
+    // if (chapter != null) {
+    //     requestType = "POST";
+    //     url = '/'+project+'/add_chapter';
+    //     payload = JSON.stringify({ 'notebook': notebook, 'chapter': chapter });
+    //     toastParams = {timeOut: 1000,
+    //                     fadeOut: 1000,
+    //                     onHidden: function () {
+    //                       window.location.href = "/serve/"+project+'/'+notebook+"/"+chapter;
+    //                    }};
+    //     flaskRequest({requestType:requestType, url:url, payload:payload, toastParams:toastParams});
+    // } else {
+    //     toastr.error('Action cancelled.', 'Error');
+    // }
+}
