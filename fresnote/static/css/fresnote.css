@@ -49,6 +49,20 @@ p {
     background-color: rgb(5,71,96,.04) !important;
 }
 
+.katex-math-inline {
+    font-size: 1.1em;
+    color: #a25f5f;
+}
+
+.katex-math-equation {
+    font-size: 1em;
+    color: #a25f5f;
+}
+
+.fresnote-script-button {
+    padding: 0% 1%;
+}
+
 
 h3, .h3 {
     font-size: 1.2em; !important;
@@ -78,6 +92,7 @@ h1, .h1 {
 hr {
   border-top: 2px solid rgb(162 96 96);
 }
+
 
 ul li {
   font-size: 0.9em; !important;

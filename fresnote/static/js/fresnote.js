@@ -745,3 +745,11 @@ function searchBar(project) {
         }
     };
 }
+
+function viewScript(project, scriptPath) {
+    window.location.href = "/"+project+"/highlight/"+scriptPath;
+}
+
+function runScript(scriptName) {
+    alert('Script will be executed: '+scriptName)
+}

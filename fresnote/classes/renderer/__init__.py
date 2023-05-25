@@ -4,6 +4,21 @@ from typing import List, Tuple, Dict
 
 class InlineRenderers:
 
+    def __init__(self):
+
+        self.icons = {
+                '.pdf' : 'file-pdf-regular.svg',
+                '.docx': 'file-alt-regular.svg',
+                '.doc' : 'file-alt-regular.svg',
+                '.xls' : 'file-alt-regular.svg',
+                '.xlsx': 'file-alt-regular.svg',
+                '.csv' : 'file-csv-solid.svg',
+                '.txt' : 'file-alt-regular.svg',
+                '.tex' : 'file-alt-regular.svg',
+                '.bib' : 'file-alt-regular.svg',
+                '.tsv' : 'file-csv-solid.svg'
+        }
+
     def render_markdown_bold_text_markups(self, text: str) -> str:
         """Converts markdown bold markups to html bold markups."""
         if "**" in text and text.count("**") % 2 == 0:
@@ -100,7 +115,7 @@ class InlineRenderers:
 
     def render_icon_markups(self, text: str) -> str:
         icons = {
-                'todo' : '<img id="todoIcon" src="/static/icons/circle-regular.svg" alt="drawing" width="20"/>',
+                'todo' : '<img id="todoIcon" src="/static/icons/todo-circle-regular.svg" alt="drawing" width="20"/>',
                 'done' : '<img id="todoIcon" src="/static/icons/check-circle-regular.svg" alt="drawing" width="20"/>',
                 'error': '<img id="todoIcon" src="/static/icons/bug-solid.svg" alt="drawing" width="20"/>'
                 }
@@ -113,6 +128,57 @@ class InlineRenderers:
         if text.startswith(">"):
             text = "<blockquote>{}</blockquote>".format(text[2:])
         return text
+
+    def render_math_inline_markups(self, text: str) -> str:
+        if "$" in text and text.count("$") % 2 == 0:
+            probe = '\\$(.*?)\\$'
+            mathTexts = re.findall(probe, text)
+            for mathText in mathTexts:
+                renderedText = f"<span class='katex-math-inline'>{mathText}</span>"
+                text = text.replace(f'${mathText}$', renderedText)
+        elif "\(" in text and '\)' in text:
+            probe = '\\\\\((.*?)\\\\\)'
+            mathTexts = re.findall(probe, text)
+            for mathText in mathTexts:
+                renderedText = f"<span class='katex-math-inline'>{mathText}</span>"
+                text = text.replace(f'\({mathText}\)', renderedText)
+        return text
+
+    def render_script_markups(self, text: str) -> str:
+        if "\\script{" in text:
+            probe = '\\\\script{(.*?)}'
+            scriptTexts = re.findall(probe, text)
+
+            for scriptText in scriptTexts:
+                try:
+                    project, scriptPath = scriptText.split(":")
+                    project = project.strip()
+                    scriptPath = scriptPath.strip()
+                except Exception:
+                    text = '<span style="color:#FF0000";>Script markups should include: "project: script/path"<br>'+text
+                    return text
+                renderedText = f'<a class="btn btn-sm btn-success text-white fresnote-script-button"role="button" onclick="viewScript(\'{project}\', \'{scriptPath}\')">View</a> <a class="btn btn-sm btn-warning text-black fresnote-script-button"role="button" onclick="runScript(\'{scriptText}\')">Run</a> {scriptText}'
+                text = text.replace(f'\\script{{{scriptText}}}', renderedText)
+        return text
+
+    def render_table_markups(self, text: str) -> str:
+        if "\\table{" in text:
+            probe = '\\\\table{(.*?)}'
+            tables = re.findall(probe, text)
+            for table in tables:
+                try:
+                    title, project, tablePath, delimiter = scriptText.split(":")
+                    title = title.strip()
+                    project = project.strip()
+                    tablePath = tablePath.strip()
+                    delimiter = delimiter.strip()
+                except Exception:
+                    text = '<span style="color:#FF0000";>Table markups should include: "title:project:table/path:delimiter"<br>'+text
+                    return text
+                renderedText = '<a href="/{project}/table/{filepath}/{delimiter}"><img id="todoIcon" src="/static/icons/table-solid.svg" alt="drawing" width="20"/> {title}</a>'.format(title=title, project=project, filepath=tablePath, delimiter=delimiter)
+                text = text.replace(f'\\table{{{table}}}', renderedText)
+        return text 
+
 
 
 class Renderer():
@@ -145,28 +211,17 @@ class Renderer():
                         '<div class="collapse" id="subsection_fold_{count}_{ID}">'\
                         '<br>',
                 'img' : '<div class="container-fluid">',
-                'list': '<ul>'
+                'list': '<ul>',
+                'math': '<span class="katex-math-equation">'
         }
 
         # Define end html for markups
         self.renderEnd_markup = {
                 'code': '</pre>',
                 'fold': '</div></div></div><br>',
-                'img' : '</div>',
-                'list'  : '</ul>'
-        }
-
-        self.icons = {
-                '.pdf' : 'file-pdf-regular.svg',
-                '.docx': 'file-alt-regular.svg',
-                '.doc' : 'file-alt-regular.svg',
-                '.xls' : 'file-alt-regular.svg',
-                '.xlsx': 'file-alt-regular.svg',
-                '.csv' : 'file-csv-solid.svg',
-                '.txt' : 'file-alt-regular.svg',
-                '.tex' : 'file-alt-regular.svg',
-                '.bib' : 'file-alt-regular.svg',
-                '.tsv' : 'file-csv-solid.svg'
+                'img' : '</div><br>',
+                'list': '</ul>',
+                'math': '</span>'
         }
 
         
@@ -206,6 +261,8 @@ class Renderer():
             flag = 'fold'
         elif self.line.startswith('\\list{'):
             flag = 'list'
+        elif self.line.startswith('$$'):
+            flag = 'math'
         elif self.line.lstrip().startswith('}'):
             flag = 'end'
         else:
@@ -214,6 +271,13 @@ class Renderer():
 
         if flag == "code":
             if self.is_last_flag("code"):
+                self.flags['order'].pop()
+                self.renderedLines.append(self.renderEnd_markup[flag])
+            else:
+                self.flags['order'].append(flag)
+                self.renderedLines.append(self.renderStart_markup[flag])
+        elif flag == "math":
+            if self.is_last_flag("math"):
                 self.flags['order'].pop()
                 self.renderedLines.append(self.renderEnd_markup[flag])
             else:
@@ -244,6 +308,8 @@ class Renderer():
         else:
             if self.is_last_flag("code"):
                 self.renderedLines.append(self.line)
+            elif self.is_last_flag("math"):
+                self.renderedLines.append(self.line.strip("\n"))
             elif self.line.strip().strip("\n"):
                 if self.is_last_flag('list'):
                     if self.line.startswith("* "):

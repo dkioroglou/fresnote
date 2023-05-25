@@ -325,124 +325,30 @@ def search(project, sectionIDs):
                                chapter=None,
                                sections=sections)
 
-    # elif request.meth
-    #
-    # sidebarData = notes.get_all_notebooks_and_chapters_for_sidebar()
-    #
-    #     query = request.form.get("searchBarQuery")
-    #     sections = notes.get_sections_based_on_search_bar_query(query)
-    #     if not sections:
-    #         flash('No sections found', 'danger')
-    #         return '', 204
-    # else:
-    #     sections = []
-    # return render_template('project.html', 
-    #                        sidebar=True,
-    #                        search=True,
-    #                        sidebarData=sidebarData,
-    #                        project=project, 
-    #                        notebook=None, 
-    #                        chapter=None,
-    #                        sections=sections)
-    #
-    # if request.method == 'POST':
-    #     query = request.form.get("searchBarQuery")
-    #
-    #     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-    #
-    #     if sections:
-    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
-    #     else:
-    #         flash('No sections found', 'danger')
-    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
-    # else:
-    #     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-    #
-    #     sections = []
-    #     if sections:
-    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
-    #     else:
-    #         return render_template('search_bar.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/view_sections/<sectionsID>', methods=['GET'])
-# def view_sections(project, sectionsID):
-#     notes = project(project)
-#     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-#     sections = notes.get_sections_based_on_IDs(sectionsID)
-#
-#     if sections:
-#         return render_template('view_sections.html', data={'sidebarData':sidebarData, 'sections':sections}, project=project)
-#     else:
-#         flash('No sections found', 'danger')
-#         return render_template('view_sections.html', data={'sidebarData':sidebarData, 'sections':[]}, project=project)
-#
-#
+
+@projects.route('/<project>/highlight/<directory>/<path:filename>', methods=['GET'])
+def highlight_script(project, directory, filename):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+    filePath = Path(notes.config.get(notes.project, directory)).joinpath(filename)
+    scriptCode = open(filePath).read()
+    return render_template('highlight_script_code.html', sidebar=False, sidebarData=[], scriptcode=scriptCode, project=project, filePath=filePath) 
 
 
-# @project.route('/upload_file/<project>/<project>/<chapter>', methods=['POST'])
-# def upload_file_func(project, project, chapter):
-#     notes = project(project)
-#     pathToSave = os.path.join(notes.docsDir, 'uploads')
-#
-#     try:
-#         for f in request.files.getlist('uploaded_files_for_project'):
-#             f.save(os.path.join(pathToSave, f.filename))
-#     except Exception as error:
-#         flash('Error while uploading files.', 'danger')
-#         return redirect(url_for('project.serve_project_func', project=project, project=project, chapter=chapter)) 
-#
-#     flash('Files uploaded successfully', 'success')
-#     return redirect(url_for('project.serve_project_func', project=project, project=project, chapter=chapter)) 
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/view_table/<path:filename>/<delimiter>', methods=['GET'])
-# def view_table(project, filename, delimiter):
-#     print(filename)
-#     notes = project(project)
-#     if not delimiter:
-#         delimiter = 'tab'
-#
-#     if delimiter == 'tab':
-#         delimiter = '\t'
-#     elif delimiter == 'comma':
-#         delimiter = ','
-#     elif delimiter == 'space':
-#         delimiter = ' '
-#
-#     filePath = '{}/{}'.format(notes.projectDir, filename)
-#     contents = open(filePath, 'r').read().splitlines()
-#     columns = contents[0].split(delimiter)
-#     rows = [r.split(delimiter) for r in contents[1:]]
-#     return render_template('table_grid.html', columns=columns, rows=rows)
-#
-#
-#
-# """
-# NOTES:
-#     STAYS - CHANGED
-# """
-# @project.route('/<project>/highlight/<path:filename>', methods=['GET'])
-# def highlight_script(project, filename):
-#     notes = project(project)
-#     sidebarData = notes.get_all_projects_and_chapters_for_sidebar()
-#     filePath = '{}/{}'.format(notes.projectDir, filename)
-#     scriptCode = open(filePath).read()
-#     return render_template('highlight_script_code.html', data={'sidebarData':sidebarData, 'sections':[]}, scriptcode=scriptCode, project=project) 
-#
-#
-#
-#
-#
-#
-#
-#
+@projects.route('/<project>/table/<directory>/<path:filename>/<delimiter>', methods=['GET'])
+def view_table(project, directory, filename, delimiter):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+
+    if delimiter == 'tab':
+        delimiter = '\t'
+    elif delimiter == 'comma':
+        delimiter = ','
+    elif delimiter == 'space':
+        delimiter = ' '
+
+    filePath = Path(notes.config.get(notes.project, directory)).joinpath(filename)
+    contents = open(filePath, 'r').read().splitlines()
+    columns = contents[0].split(delimiter)
+    rows = [r.split(delimiter) for r in contents[1:] if r]
+    return render_template('table_grid.html', project=project, tablePath=filePath, columns=columns, rows=rows)

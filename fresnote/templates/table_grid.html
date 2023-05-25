@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="{{url_for('static', filename='tablegrid/simple_datatables.css')}}">
+
+        <title>Table</title>
+    </head>
+
+    <body>
+        <p style="text-align:center"><b>project:</b> {{ project }}</p>
+        <p style="text-align:center"><b>file-path:</b> {{ tablePath }}</p>
+        <table class="table">
+                    <thead>
+                        <tr>
+                            {% for col in columns %}
+                                <th>{{col}}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            {% for rowvalue in row %}
+                                <td>{{rowvalue}}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        <script src="{{url_for('static', filename='tablegrid/simple_datatables.js')}}"></script>
+        <script>
+            new window.simpleDatatables.DataTable("table")
+        </script>
+
+    </body>
+</html>
