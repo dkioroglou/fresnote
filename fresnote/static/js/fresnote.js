@@ -571,47 +571,6 @@ function editContent(project, sectionID) {
 
 
  
-// function saveContent(sectionID) {
-//     var contentSectionID = "content_section_"+sectionID;
-//     var contentSection = document.getElementById(contentSectionID);
-//
-//     var contentID = "content_"+sectionID;
-//     var content = document.getElementById(contentID);
-//     var contentText = content.innerText;
-//
-//     var editButtonID = "editContentButton_"+sectionID;
-//     var editButton = document.getElementById(editButtonID);
-//
-//     var saveButtonID = "saveContentButton_"+sectionID;
-//     var saveButton = document.getElementById(saveButtonID);
-//
-//     contentSection.style.border = "";
-//     contentSection.setAttribute('contenteditable', 'false');
-//
-//     editButton.classList.remove('disabled');
-//     saveButton.classList.add('disabled');
-//
-//     const request = new XMLHttpRequest();
-//     request.open('POST', '/save_section_content', true);
-//     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-//     request.send(JSON.stringify({
-//                         'sectionID': sectionID,
-//                         'sectionContent': contentText
-//     }));
-//
-//     request.onload = function() {
-//         responseStatus = request.status;
-//         if (responseStatus == 200){
-//             document.location.reload(true);
-//         } else {
-//             toastr.error('Error while saving content.', 'Error');
-//             
-//         }
-//     };
-// }
-
-
-// NOTES: STAYS - changed
 function addNewSection(project, notebook, chapter) {
     const request = new XMLHttpRequest();
     request.open('POST', '/add_new_section/'+project+'/'+notebook+'/'+chapter, true);
@@ -750,6 +709,29 @@ function viewScript(project, scriptPath) {
     window.location.href = "/"+project+"/highlight/"+scriptPath;
 }
 
-function runScript(scriptName) {
-    alert('Script will be executed: '+scriptName)
+function runScript(project, scriptName, scriptID) {
+    var runIndicator = document.getElementById(scriptID);
+    runIndicator.innerText = "Running..."
+    runIndicator.style.color = "red";
+    runIndicator.removeAttribute("hidden");
+
+    toastr.success('Script running.', 'Success');
+
+    const request = new XMLHttpRequest();
+    request.open("POST", '/'+project+"/run_script", true);
+    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.send(JSON.stringify({'script': scriptName}));
+
+    request.onload = function() {
+        responseStatus = request.status;
+        if (responseStatus == 200){
+            toastr.success('Script done.', 'Success');
+            runIndicator.innerText = "Run successful."
+            runIndicator.style.color = "green";
+        } else {
+            toastr.error('Script error.', 'Error');
+            runIndicator.innerText = "Run error."
+            runIndicator.style.color = "red";
+        }
+    };
 }

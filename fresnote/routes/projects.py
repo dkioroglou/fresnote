@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory, current_app
 from pathlib import Path
+import subprocess
 from fresnote.classes import Projects
 from fresnote.classes import Notebook
 
@@ -352,3 +353,24 @@ def view_table(project, directory, filename, delimiter):
     columns = contents[0].split(delimiter)
     rows = [r.split(delimiter) for r in contents[1:] if r]
     return render_template('table_grid.html', project=project, tablePath=filePath, columns=columns, rows=rows)
+
+
+@projects.route('/<project>/run_script', methods=['POST'])
+def run_script(project):
+    config = current_app.config['projects_config']
+    notes = Notebook(project, config)
+
+    data = request.get_json()
+    script = data['script']
+    scriptPath = notes.projectPath.joinpath(script)
+    scriptExtension = Path(scriptPath).suffix
+    executor = {
+            '.sh': 'bash',
+            '.py': 'python',
+            '.R' : 'Rscript'
+            }
+    try:
+        p1 = subprocess.run([executor[scriptExtension], scriptPath], capture_output=True, check=True)
+    except Exception:
+        return '', 400
+    return '', 200

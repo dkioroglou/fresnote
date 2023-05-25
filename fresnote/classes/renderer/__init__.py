@@ -157,7 +157,12 @@ class InlineRenderers:
                 except Exception:
                     text = '<span style="color:#FF0000";>Script markups should include: "project: script/path"<br>'+text
                     return text
-                renderedText = f'<a class="btn btn-sm btn-success text-white fresnote-script-button"role="button" onclick="viewScript(\'{project}\', \'{scriptPath}\')">View</a> <a class="btn btn-sm btn-warning text-black fresnote-script-button"role="button" onclick="runScript(\'{scriptText}\')">Run</a> {scriptText}'
+                scriptID = scriptText.replace("/", "-")
+                renderedText = ('<a class="btn btn-sm btn-success text-white fresnote-script-button mr-2" role="button" '
+                                f'onclick="viewScript(\'{project}\', \'{scriptPath}\')"> View</a> '
+                                '<a class="btn btn-sm btn-warning text-black fresnote-script-button mr-2" role="button" '
+                                f'onclick="runScript(\'{project}\', \'{scriptPath}\', \'{scriptID}\')">Run</a> {scriptText} '
+                                f'<span class="ml-2" hidden id="{scriptID}" style="color:red"></span>')
                 text = text.replace(f'\\script{{{scriptText}}}', renderedText)
         return text
 
@@ -167,13 +172,13 @@ class InlineRenderers:
             tables = re.findall(probe, text)
             for table in tables:
                 try:
-                    title, project, tablePath, delimiter = scriptText.split(":")
+                    title, project, tablePath, delimiter = table.split(",")
                     title = title.strip()
                     project = project.strip()
                     tablePath = tablePath.strip()
                     delimiter = delimiter.strip()
                 except Exception:
-                    text = '<span style="color:#FF0000";>Table markups should include: "title:project:table/path:delimiter"<br>'+text
+                    text = '<span style="color:#FF0000";>Table markups should include: "title,project,table/path,delimiter"<br>'+text
                     return text
                 renderedText = '<a href="/{project}/table/{filepath}/{delimiter}"><img id="todoIcon" src="/static/icons/table-solid.svg" alt="drawing" width="20"/> {title}</a>'.format(title=title, project=project, filepath=tablePath, delimiter=delimiter)
                 text = text.replace(f'\\table{{{table}}}', renderedText)
