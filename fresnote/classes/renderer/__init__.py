@@ -162,7 +162,8 @@ class InlineRenderers:
                                 f'onclick="viewScript(\'{project}\', \'{scriptPath}\')"> View</a> '
                                 '<a class="btn btn-sm btn-warning text-black fresnote-script-button mr-2" role="button" '
                                 f'onclick="runScript(\'{project}\', \'{scriptPath}\', \'{scriptID}\')">Run</a> {scriptText} '
-                                f'<span class="ml-2" hidden id="{scriptID}" style="color:red"></span>')
+                                f'<span class="fresnote-spinner ml-2" hidden id="spinner-{scriptID}"></span> '
+                                f'<span hidden id="{scriptID}" style="color:red"></span>')
                 text = text.replace(f'\\script{{{scriptText}}}', renderedText)
         return text
 

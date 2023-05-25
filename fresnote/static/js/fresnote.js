@@ -710,28 +710,41 @@ function viewScript(project, scriptPath) {
 }
 
 function runScript(project, scriptName, scriptID) {
-    var runIndicator = document.getElementById(scriptID);
-    runIndicator.innerText = "Running..."
-    runIndicator.style.color = "red";
-    runIndicator.removeAttribute("hidden");
+    var confirmation = confirm("Run script and overwrite results?");
+    if (confirmation == true) {
+        var runIndicator = document.getElementById(scriptID);
+        runIndicator.innerText = "Running..."
+        runIndicator.style.color = "#a25f5f";
+        runIndicator.classList.remove("ml-2")
+        runIndicator.removeAttribute("hidden");
 
-    toastr.success('Script running.', 'Success');
+        var spinner = document.getElementById('spinner-'+scriptID);
+        spinner.removeAttribute("hidden");
 
-    const request = new XMLHttpRequest();
-    request.open("POST", '/'+project+"/run_script", true);
-    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    request.send(JSON.stringify({'script': scriptName}));
+        toastr.success('Script running.', 'Success');
 
-    request.onload = function() {
-        responseStatus = request.status;
-        if (responseStatus == 200){
-            toastr.success('Script done.', 'Success');
-            runIndicator.innerText = "Run successful."
-            runIndicator.style.color = "green";
-        } else {
-            toastr.error('Script error.', 'Error');
-            runIndicator.innerText = "Run error."
-            runIndicator.style.color = "red";
-        }
-    };
+        const request = new XMLHttpRequest();
+        request.open("POST", '/'+project+"/run_script", true);
+        request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        request.send(JSON.stringify({'script': scriptName}));
+
+        request.onload = function() {
+            responseStatus = request.status;
+            if (responseStatus == 200){
+                toastr.success('Script done.', 'Success');
+                runIndicator.innerText = "Run successful."
+                runIndicator.style.color = "green";
+                runIndicator.classList.add("ml-2")
+                spinner.setAttribute("hidden", true);
+            } else {
+                toastr.error('Script error.', 'Error');
+                runIndicator.innerText = "Run error."
+                runIndicator.style.color = "red";
+                runIndicator.classList.add("ml-2")
+                spinner.setAttribute("hidden", true);
+            }
+        };
+    } else {
+        toastr.error('Action cancelled.', 'Warning');
+    }
 }
