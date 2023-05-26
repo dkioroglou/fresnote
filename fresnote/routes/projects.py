@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory, current_app
 from pathlib import Path
+from platform import system
 import subprocess
 from fresnote.classes import Projects
 from fresnote.classes import Notebook
@@ -271,19 +272,28 @@ def delete_chapter_and_sections(project, notebook, chapter):
 def get_path(project, directory, filename):
     config = current_app.config['projects_config']
     notes = Notebook(project, config)
-    filePath = Path(notes.config.get(notes.project, directory))
-    # fileExtention = os.path.splitext(filename)[-1]
-    # docExtensions = ['.docx', '.doc', '.xls', '.xlsx', '.csv', '.tsv', '.tex', '.bib']
-    #
-    # if fileExtention and fileExtention in docExtensions:
-    #     if fileExtention == '.tex':
-    #         os.system("gnome-terminal -- bash -c \"cd {} && nvim {}\" ".format(os.path.dirname(filePath), filePath))
-    #     else:
-    #         os.system(f'xdg-open {filePath}')
-    #     return ('', 204)
-    # else:
-    #     return send_from_directory(notes.notebookDir, filename)
-    return send_from_directory(filePath, filename)
+    dirPath = Path(notes.config.get(notes.project, directory))
+    filePath = dirPath.joinpath(filename)
+    if not Path(filePath).exists():
+        errorText = f"Filepath {filePath} does not exist."
+        if current_app.config['logging']:
+            current_app.logger.error(errorText)
+        return errorText, 400 
+
+    fileExtention = Path(filePath).suffix
+    docExtensions = ['.docx', '.doc', '.xls', '.xlsx', '.csv', '.tsv', '.tex', '.bib', '.txt']
+
+    if fileExtention in docExtensions:
+        OSname = system().lower()
+        opener = {
+                "linux"  : "xdg-open",
+                "windows": "start",
+                "osx"    : "open",
+                "darwin" : "open"
+                }
+        proc = subprocess.run([opener[OSname], filePath], capture_output=True, check=False, text=True)
+        return '', 204 
+    return send_from_directory(dirPath, filename)
 
 
 @projects.route('/<project>/search', defaults={'sectionIDs': None}, methods=['GET', 'POST'])
@@ -369,8 +379,12 @@ def run_script(project):
             '.py': 'python',
             '.R' : 'Rscript'
             }
-    try:
-        p1 = subprocess.run([executor[scriptExtension], scriptPath], capture_output=True, check=True)
-    except Exception:
+    proc = subprocess.run([executor[scriptExtension], scriptPath], capture_output=True, check=False, text=True)
+    if proc.returncode != 0:
+        if current_app.config['logging']:
+            current_app.logger.error(proc.stderr)
+        else:
+            print(proc.stderr)
         return '', 400
     return '', 200
+

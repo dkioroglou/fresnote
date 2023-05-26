@@ -1,22 +1,24 @@
+import configparser
 from pathlib import Path
 import re
 from typing import List, Tuple, Dict
+import fresnote.classes
 
 class InlineRenderers:
 
-    def __init__(self):
-
+    def __init__(self, configName):
+        self.configName = configName
         self.icons = {
                 '.pdf' : 'file-pdf-regular.svg',
-                '.docx': 'file-alt-regular.svg',
-                '.doc' : 'file-alt-regular.svg',
-                '.xls' : 'file-alt-regular.svg',
-                '.xlsx': 'file-alt-regular.svg',
+                '.docx': 'file-doc-solid.svg',
+                '.doc' : 'file-doc-solid.svg',
+                '.xls' : 'file-xls-solid.svg',
+                '.xlsx': 'file-xls-solid.svg',
                 '.csv' : 'file-csv-solid.svg',
-                '.txt' : 'file-alt-regular.svg',
-                '.tex' : 'file-alt-regular.svg',
-                '.bib' : 'file-alt-regular.svg',
-                '.tsv' : 'file-csv-solid.svg'
+                '.tsv' : 'file-tsv-solid.svg',
+                '.txt' : 'file-txt-solid.svg',
+                '.tex' : 'file-tex-solid.svg',
+                '.bib' : 'file-bib-solid.svg'
         }
 
     def render_markdown_bold_text_markups(self, text: str) -> str:
@@ -151,19 +153,20 @@ class InlineRenderers:
 
             for scriptText in scriptTexts:
                 try:
-                    project, scriptPath = scriptText.split(":")
+                    project, scriptPath = scriptText.split(",")
                     project = project.strip()
                     scriptPath = scriptPath.strip()
                 except Exception:
                     text = '<span style="color:#FF0000";>Script markups should include: "project: script/path"<br>'+text
                     return text
-                scriptID = scriptText.replace("/", "-")
-                renderedText = ('<a class="btn btn-sm btn-success text-white fresnote-script-button mr-2" role="button" '
+                scriptID = project+"-"+scriptPath.replace("/", "-").replace(".", "-")
+                sectionIndicator = f'<span class="badge badge-pill badge-info ">{project}: {scriptPath}</span>'
+                renderedText = ('<div><a class="btn btn-sm btn-success text-white fresnote-script-button mr-2" role="button" '
                                 f'onclick="viewScript(\'{project}\', \'{scriptPath}\')"> View</a> '
                                 '<a class="btn btn-sm btn-warning text-black fresnote-script-button mr-2" role="button" '
-                                f'onclick="runScript(\'{project}\', \'{scriptPath}\', \'{scriptID}\')">Run</a> {scriptText} '
+                                f'onclick="runScript(\'{project}\', \'{scriptPath}\', \'{scriptID}\')">Run</a> {sectionIndicator} '
                                 f'<span class="fresnote-spinner ml-2" hidden id="spinner-{scriptID}"></span> '
-                                f'<span hidden id="{scriptID}" style="color:red"></span>')
+                                f'<span class="fresnote-spinner-text" hidden id="{scriptID}" style="color:red;"></span></div>')
                 text = text.replace(f'\\script{{{scriptText}}}', renderedText)
         return text
 
@@ -185,11 +188,75 @@ class InlineRenderers:
                 text = text.replace(f'\\table{{{table}}}', renderedText)
         return text 
 
+    def render_include_section_markups(self, text: str) -> str:
+        if text.startswith('\include-section{'):
+            probe = '\\\\include-section{(.*?)}'
+            results = re.findall(probe, text)
+            for res in results:
+                try:
+                    project, sectionID = res.split(',')
+                    project = project.strip()
+                    sectionID = int(sectionID.strip())
+                except Exception:
+                    text = '<span style="color:#FF0000";>Include-section markups should have: "project,sectionID"<br>'+text
+                    return text
+
+                try:
+                    # The following import produces circular import error:
+                    # from fresnote.classes import Notebook
+                    # A workaround was to do the following import:
+                    # import fresnote.classes
+                    notes = fresnote.classes.Notebook(project, self.configName)
+                    sectionsList = notes.get_sections_based_on_IDs([sectionID])
+                except Exception:
+                    text = f'<span style="color:#FF0000";>Error parsing content from section: "{project},{sectionID}"<br>'+text
+                    return text
+                sectionIndicator = f'<a href="/{project}/view/{sectionID}"><span class="badge badge-pill badge-info">{project}: section {sectionID}</span></a><hr>'
+                if sectionsList:
+                    renderedText = sectionIndicator + sectionsList[0]['content'] + '<hr>'
+                else:
+                    renderedText = sectionIndicator + '<span style="color:#FF0000";>No content found for section<br>'
+                text = text.replace(f'\\include-section{{{res}}}', renderedText)
+        return text
 
 
-class Renderer():
+    def render_include_file_markups(self, text: str) -> str:
+        if text.startswith('\include-file{'):
+            probe = '\\\\include-file{(.*?)}'
+            results = re.findall(probe, text)
+            for res in results:
+                try:
+                    project, filePath = res.split(',')
+                    project = project.strip()
+                    filePath = filePath.strip()
+                except Exception:
+                    text = '<span style="color:#FF0000";>Include-file markups should have: "project,filePath"<br>'+text
+                    return text
 
-    def __init__(self):
+                try:
+                    notes = fresnote.classes.Notebook(project, self.configName)
+                    projectPath = Path(notes.projectPath)
+                    filePath = projectPath.joinpath(filePath)
+                except Exception:
+                    text = '<span style="color:#FF0000";>Project does not exist: {project}<br>'+text
+                    return text
+
+                if not Path(filePath).exists():
+                    text = '<span style="color:#FF0000";>Included file does not exist: {filePath}<br>'+text
+                    return text
+
+                sectionIndicator = f'<span class="badge badge-pill badge-info">file: {filePath}</span><hr>'
+                fileContent = open(filePath, encoding="utf-8").read()
+                renderedText = sectionIndicator+"<p><pre>"+fileContent+"</pre></p><hr>"
+                text = text.replace(f'\\include-file{{{res}}}', renderedText)
+        return text
+
+
+
+class Renderer:
+
+    def __init__(self, configName):
+        self.configName = configName
         self.ID = ''
         self.line = ''
         self.renderedLines = []
@@ -231,7 +298,7 @@ class Renderer():
         }
 
         
-        self.renderers = InlineRenderers()
+        self.renderers = InlineRenderers(self.configName)
         self.renderersMethods = [method for method in dir(self.renderers) if callable(getattr(self.renderers, method)) and not method.startswith("__")]
         
 

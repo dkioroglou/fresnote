@@ -75,9 +75,10 @@ class Projects:
 
 class Notebook:
 
-    def __init__(self, project, config):
+    def __init__(self, project, configName):
+        self.configName = configName
         self.config = configparser.ConfigParser()
-        self.config.read(config)
+        self.config.read(self.configName)
 
         self.project         = project
         self.projectPath     = Path(self.config.get(self.project, 'path'))
@@ -278,7 +279,7 @@ class Notebook:
                     sectionsResults = []
 
         if sectionsResults:
-            render = Renderer()
+            render = Renderer(self.configName)
             sections = render.convert_db_results_into_sections(notebook,
                                                                chapter,
                                                                sectionsResults,
@@ -443,7 +444,7 @@ class Notebook:
                 sectionsResults = c.fetchall()
 
         if sectionsResults:
-            render = Renderer()
+            render = Renderer(self.configName)
             notebook, chapter = ("", "")
             sections = render.convert_db_results_into_sections(notebook,
                                                                chapter,

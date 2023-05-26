@@ -38,7 +38,6 @@ function addNewNotebook(project) {
 }
 
 
-
 function addNewChapter(project, notebook) {
     let chapter = prompt("Enter chapter name:", "");
     if (chapter != null) {
@@ -55,7 +54,6 @@ function addNewChapter(project, notebook) {
         toastr.error('Action cancelled.', 'Error');
     }
 }
-
 
 
 function editNotebook() {
@@ -205,7 +203,6 @@ function saveSectionOrder(project, notebook, chapter) {
 }
 
 
-// Functions for section title
 function editTitle(sectionID) {
     var titleSectionID = "title_section_"+sectionID;
     var titleSection = document.getElementById(titleSectionID);
@@ -253,10 +250,6 @@ function saveTitle(project, sectionID) {
 }
 
 
-
-
-
-// Functions for section tags
 function editTags(project, sectionID) {
     var tagsSectionID = "tags_section_"+sectionID;
     var tagsSection = document.getElementById(tagsSectionID);
@@ -363,7 +356,6 @@ function saveContentFromQuill() {
         }
     };
 }
-
 
 
 function editContent(project, sectionID) {
@@ -494,8 +486,8 @@ function editContent(project, sectionID) {
             var tlb_button_link = document.querySelector('#tlb-button-link');
             tlb_button_link.addEventListener('click', function() {
                 var cursorPosition = quill.getSelection(true);
-                quill.insertText(cursorPosition, "[]()" );
-                quill.setSelection(cursorPosition.index + 1, 0);
+                quill.insertText(cursorPosition, "\link{}" );
+                quill.setSelection(cursorPosition.index + 5, 0);
             });
 
             var tlb_button_code = document.querySelector('#tlb-button-code');
@@ -508,22 +500,22 @@ function editContent(project, sectionID) {
             var tlb_button_math_inline = document.querySelector('#tlb-button-math-inline');
             tlb_button_math_inline.addEventListener('click', function() {
                 var cursorPosition = quill.getSelection(true);
-                quill.insertText(cursorPosition, "\\(\\)" );
-                quill.setSelection(cursorPosition.index + 2, 0);
+                quill.insertText(cursorPosition, "$$" );
+                quill.setSelection(cursorPosition.index + 1, 0);
             });
 
             var tlb_button_fold = document.querySelector('#tlb-button-fold');
             tlb_button_fold.addEventListener('click', function() {
                 var cursorPosition = quill.getSelection(true);
-                quill.insertText(cursorPosition, "\\begin{fold}Title\n\n\n\n\\end{fold}" );
-                quill.setSelection(cursorPosition.index + 19, 0);
+                quill.insertText(cursorPosition, "\\fold{Title\n\n\}" );
+                quill.setSelection(cursorPosition.index + 6, 0);
             });
 
             var tlb_button_image = document.querySelector('#tlb-button-image');
             tlb_button_image.addEventListener('click', function() {
                 var cursorPosition = quill.getSelection(true);
-                quill.insertText(cursorPosition, '<div class="container-fluid">\n\\btnimg{Title,file,200,100}\n<br><br>\n</div>' );
-                quill.setSelection(cursorPosition.index + 38, 0);
+                quill.insertText(cursorPosition, '\img{\nTitle,file,200,100\n}' );
+                quill.setSelection(cursorPosition.index + 5, 0);
             });
 
             quill.root.setAttribute('spellcheck', false);
@@ -568,7 +560,6 @@ function editContent(project, sectionID) {
             };
         };
 }
-
 
  
 function addNewSection(project, notebook, chapter) {
@@ -705,9 +696,11 @@ function searchBar(project) {
     };
 }
 
+
 function viewScript(project, scriptPath) {
     window.location.href = "/"+project+"/highlight/"+scriptPath;
 }
+
 
 function runScript(project, scriptName, scriptID) {
     var confirmation = confirm("Run script and overwrite results?");

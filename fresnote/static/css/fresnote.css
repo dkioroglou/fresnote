@@ -63,6 +63,12 @@ p {
     padding: 0% 1%;
 }
 
+.fresnote-spinner-text {
+    display: inline-block;
+    position: relative;
+    top: 2px;
+}
+
 .fresnote-spinner {
     display: inline-block;
     height: 15px;
@@ -71,6 +77,8 @@ p {
     border-color: #a25f5f transparent #a25f5f transparent;
     border-radius: 110%;
     animation: spinning 1.3s linear infinite;
+    position: relative;
+    margin: -3px auto;
 }
 
 @keyframes spinning {
