@@ -2,7 +2,7 @@
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
-**Fresnote** is a browser-based note-taking application that uses Flask as a backend and Boostrap as a front-end. It is suitable for managing personal and research projects by assisting in the organization of the results and the analytical pipeline in a modular manner.
+**Fresnote** is a browser-based note-taking application that uses Flask as a backend and Bootstrap as a front-end. It is suitable for managing personal and research projects by assisting in the organization of the results and the analytical pipeline in a modular manner.
 
 ## Installation
 
