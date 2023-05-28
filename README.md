@@ -2,7 +2,7 @@
 
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
-**F**lask **res**earch **note**book (`fresnote`) is a browser-based note-taking application suitable for managing and organizing personal and research projects. It uses Flask as a backend and Bootstrap as a front-end.
+**F**lask **res**earch **note**book (`fresnote`) is a browser-based note-taking application suitable for managing and organizing personal and research projects. It uses Flask as backend and Bootstrap as frontend.
 
 ![main figure](https://github.com/dkioroglou/fresnote/blob/main/docs/images/main_figure.png)
 

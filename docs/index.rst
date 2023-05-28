@@ -30,13 +30,13 @@ Welcome to fresnote documentation!
 Installation
 ************************************
 
-``fresnote`` uses Flask as back-end and Bootstrap as front-end. To install ``fresnote`` run:
+``fresnote`` uses Flask as backend and Bootstrap as frontend. To install ``fresnote`` run:
 
 .. code-block:: bash
 
     pip install fresnote
 
-The development and testing of ``fresnote`` has been done using ``python 3.8`` with `Flask <https://flask.palletsprojects.com/en/2.3.x/>`_ as the only dependency. Regarding the front-end, the CSS and JS libraries for `Bootsrap <https://getbootstrap.com/>`_, `Jquery <https://jquery.com/>`_, `Quill <https://quilljs.com/>`_, `Toastr <https://github.com/CodeSeven/toastr>`_, `Hightlight <https://highlightjs.org/>`_ and `Katex <https://katex.org/>`_ are included in the installation for offline usage. 
+The development and testing of ``fresnote`` has been done using ``python 3.8`` with `Flask <https://flask.palletsprojects.com/en/2.3.x/>`_ as the only dependency. Regarding the frontend, the CSS and JS libraries for `Bootsrap <https://getbootstrap.com/>`_, `Jquery <https://jquery.com/>`_, `Quill <https://quilljs.com/>`_, `Toastr <https://github.com/CodeSeven/toastr>`_, `Hightlight <https://highlightjs.org/>`_ and `Katex <https://katex.org/>`_ are included in the installation for offline usage. 
 
 
 ################################################
