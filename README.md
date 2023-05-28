@@ -2,12 +2,19 @@
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
-**Fresnote** is a browser-based note-taking application that uses Flask as a backend and Bootstrap as a front-end. It is suitable for managing personal and research projects by assisting in the organization of the results and the analytical pipeline in a modular manner.
+**F**lask **res**earch **note**book (`fresnote`) is a browser-based note-taking application suitable for managing and organizing personal and research projects. It uses Flask as a backend and Bootstrap as a front-end.
+
+* User creates **projects**.
+* Each project has one or more **notebooks**.
+* Each notebook has one or more **chapters**.
+* Each chapter has one or more **sections**.
 
 ## Installation
 
-**Fresnote** has been tested with python 3.8 and has Flask as the only dependency. Necessary HTML templates, CSS and JS files are automatically installed upon installation. 
+`fresnote` has been tested with python 3.8 and has Flask as the only dependency. Necessary HTML templates, CSS and JS files are automatically installed upon installation. 
+
 To install **fresnote** run:
+
 ```
 pip install fresnote
 ```
