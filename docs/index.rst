@@ -13,7 +13,7 @@ Welcome to fresnote documentation!
 
 .. image:: images/main_figure.png
    :width: 600
-   :alt: Figure 1
+   :alt: Main figure
    :align: center
 
 |br|
@@ -72,5 +72,131 @@ The above command will start the Flask server which by default will be listening
 Create the first project
 ************************************
 
+After entering the url ``http://127.0.0.1:5000/``, you will be directed to the page where you can load an existing project or create a new one. For the latter, you need to specify the **full-path** of the directory where you want the project to be stored. Keep note that in the example shown below, a project is created without specifying the full-path. Although this can be done, it is not advised since various aspects of the application will not function properly. Additionally, since a directory will be created based on the provided project name, it is suggested project names not to include whitespaces.
+
+.. image:: images/figure_1.gif
+   :width: 600
+   :alt: Figure 1
+   :align: center
+
+|br|
+
+Upon project creation, ``fresnote`` enters the following entries in the ``.ini`` file:
+
+.. code-block::
+
+    [first-project]
+    path = first-project
+    docs = first-project/docs
+    uploads = first-project/uploads
+    sections = first-project/sections
+    db = first-project/project.db
 
 
+**********************************************
+Create the first notebook, chapter and section
+**********************************************
+
+Press the button ``Notebooks`` followed by the button ``New notebook``. Automatically, ``fresnote`` will create a new chapter and name it ``First chapter``. The name of the notebook and the chapter can be changed by pressing the corresponding ``Edit`` button. To add a new section to the chapter, press the ``Add new section`` button. ``fresnote`` will name the new section as ``New section`` which can be changed with the ``Edit`` button. 
+
+.. image:: images/figure_2.gif
+   :width: 600
+   :alt: Figure 2
+   :align: center
+
+|br|
+
+************************************
+Assign tags to sections
+************************************
+
+When a new section is created, ``fresnote`` assigns an ID to the section alogn with the tag ``na``. The ID can been seen by pressing the ``Info`` button.  Furthermore, the ``Info`` area includes the ``Delete section`` button and the tags section. Tags can be changed with the ``Edit`` button and are useful for creating groups of sections.
+
+.. image:: images/figure_4.gif
+   :width: 600
+   :alt: Figure 4
+   :align: center
+
+|br|
+
+Using the section's ID, ``fresnote`` automatically creates a directory using the path specified in the ``sections`` entry of the ``.ini`` file. For instance, if a section has the ID ``1`` then ``fresnote`` will create the directory ``first-project/sections/1``. The user can include any kind of files in this directory. This allows the organization of the project into sections.  When a section is deleted, its corresponding directory is also deleted.
+
+************************************
+Reorder or include sections
+************************************
+
+By pressing the ``Panel`` button, various areas are revealed. One of this areas is called ``Add/Change order of sections``. It contains the order of the sections (if any) in the currect chapter in the form ``ID-section title``. By pressing the ``Edit`` button the user can re-order the sections or include sections from other chapters. As user input only the section ID is required, whereas the section title is optional.
+
+.. image:: images/figure_3.gif
+   :width: 600
+   :alt: Figure 3
+   :align: center
+
+|br|
+
+************************************
+Add content to sections
+************************************
+
+By pressing the ``Fold`` button, the content area of the section is revealed. The fold state of the section (folded/unfoled) is registered in the database and remembered during next project loading. The section content is writen using markdown and latex style markups and then ``fresnote`` renders the content into html.
+
+.. image:: images/figure_5.gif
+   :width: 600
+   :alt: Figure 5
+   :align: center
+
+|br|
+
+************************************
+Search for sections
+************************************
+
+By pressing the button ``Notebooks`` followed by the button ``Search`` the user is redirected to the search page. ``fresnote`` uses the words that the user enters in the search bar to search for sections that include these words in either the section title, tags or content area. 
+
+.. image:: images/figure_6.gif
+   :width: 600
+   :alt: Figure 6
+   :align: center
+
+|br|
+
+By default ``fresnote`` creates a query joining the words with ``AND``. Thus, the following user input:
+.. code-block::
+
+   word1 word2 word3
+
+gets translated into:
+.. code-block::
+
+   (section LIKE %word1% OR tags LIKE %word1% OR content LIKE %word1%) AND \
+   (section LIKE %word2% OR tags LIKE %word2% OR content LIKE %word2%) AND \
+   (section LIKE %word3% OR tags LIKE %word3% OR content LIKE %word3%) AND 
+
+If the indicator ``or:`` is included at the beginning of the query, ``fresnote`` joins the words with ``OR``. Thus, the following user input:
+.. code-block::
+
+   or:word1 word2 word3
+
+get converted into:
+.. code-block::
+
+   (section LIKE %word1% OR tags LIKE %word1% OR content LIKE %word1%) OR \
+   (section LIKE %word2% OR tags LIKE %word2% OR content LIKE %word2%) OR \
+   (section LIKE %word3% OR tags LIKE %word3% OR content LIKE %word3%) OR 
+
+The query can be contrained only to the section title, the tags or the content area by specifying the corresponding indicator along with the ``or`` indicator depending on whether the words should be joined with ``OR`` or not. 
+
+.. code-block::
+    
+    section:word1 word2 word3    -> search only section title and join words with AND
+    section-or:word1 word2 word3 -> search only section title and join words with OR
+    tags:word1 word2 word3       -> search only tags area and join words with AND
+    tags-or:word1 word2 word3    -> search only tags area and join words with OR
+    content:word1 word2 word3    -> search only content area and join words with AND
+    content-or:word1 word2 word3 -> search only content area and join words with OR
+
+Sections can be searched based on the ID by using the ``id:`` indicator:
+
+.. code-block::
+
+    id:1
