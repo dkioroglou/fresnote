@@ -15,13 +15,15 @@
 
 ## Installation
 
-`fresnote` has been tested with python 3.8 and has Flask as the only dependency. Necessary HTML templates, CSS and JS files are automatically installed upon installation. 
+`fresnote` has been developed with `python 3.8` and has Flask as the only dependency. Necessary HTML templates, CSS and JS files are included in the installation for offline use.
 
 To install **fresnote** run:
 
 ```
 pip install fresnote
 ```
+
+Testing of `fresnote` has been done on a typical x86 64bit Linux-based machine running Ubuntu 16.04 and on an Android 9.0 device (via Termux). HTML rendering was similar on both Chrome and Firefox browsers. No issues are expected on macOS and Windows devices.
 
 ## Run fresnote
 
