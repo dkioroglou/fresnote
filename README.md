@@ -1,6 +1,6 @@
 # Flask RESearch NOTEbook
 
-[![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
+[![Documentation Status](https://readthedocs.org/projects/pip/badge/?version=stable)](https://pip.pypa.io/en/stable/?badge=stable) [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
 **F**lask **res**earch **note**book (`fresnote`) is a browser-based note-taking application suitable for managing and organizing personal and research projects. It uses Flask as backend and Bootstrap as frontend.
 
