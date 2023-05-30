@@ -161,11 +161,13 @@ By pressing the button ``Notebooks`` followed by the button ``Search`` the user 
 |br|
 
 By default ``fresnote`` creates a query joining the words with ``AND``. Thus, the following user input:
+
 .. code-block::
 
    word1 word2 word3
 
 gets translated into:
+
 .. code-block::
 
    (section LIKE %word1% OR tags LIKE %word1% OR content LIKE %word1%) AND \
@@ -173,11 +175,13 @@ gets translated into:
    (section LIKE %word3% OR tags LIKE %word3% OR content LIKE %word3%) AND 
 
 If the indicator ``or:`` is included at the beginning of the query, ``fresnote`` joins the words with ``OR``. Thus, the following user input:
+
 .. code-block::
 
    or:word1 word2 word3
 
 get converted into:
+
 .. code-block::
 
    (section LIKE %word1% OR tags LIKE %word1% OR content LIKE %word1%) OR \
@@ -200,3 +204,72 @@ Sections can be searched based on the ID by using the ``id:`` indicator:
 .. code-block::
 
     id:1
+
+################################################
+Fresnote markups
+################################################
+
+``fresnote`` implements markdown and latex style markups that renders to html.
+
+************************************
+Bold text
+************************************
+
+.. code-block::
+
+    **TEXT**
+
+************************************
+Italic text
+************************************
+
+.. code-block::
+
+    __TEXT__
+
+************************************
+Headers
+************************************
+
+.. code-block::
+
+    # Header 1
+    ## Header 2
+    ### Header 3
+    #### Header 4
+
+************************************
+Divide content with horizontal line
+************************************
+
+.. code-block::
+
+   PARAGRAPH 1
+
+   ---
+
+   PARAGRAPH 2
+
+************************************
+Color text
+************************************
+
+Mark text in red or green color:
+
+.. code-block::
+
+   \red{TEXT}
+   \green{TEXT}
+
+************************************
+Create a link
+************************************
+
+Create a link to external url:
+
+.. code-block::
+
+   \link{URL}
+   \link{REFERENCE TEXT, URL}
+
+The ``REFERENCE TEXT`` is optional. If omitted, the ``URL`` will be rendered as reference text.
