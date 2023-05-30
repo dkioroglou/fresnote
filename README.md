@@ -44,7 +44,7 @@ fresnote -c fresnote.ini -p [PORT]
 
 ## Documentation
 
-Coming soon.
+You can read the full documentation here: [https://fresnote.readthedocs.io](https://fresnote.readthedocs.io/en/latest/)
 
 
 ## License
