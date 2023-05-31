@@ -43,6 +43,17 @@ class InlineRenderers:
                 text = text.replace(f'__{italicsText}__', renderedText)
         return text
 
+    def render_markdown_code_text_markups(self, text: str) -> str:
+        """Converts markdown code markups to html code markups."""
+        if "`" in text and text.count("`") % 2 == 0:
+            probe = '`(.*?)`'
+            codeTexts = re.findall(probe, text)
+
+            for codeText in codeTexts:
+                renderedText = f"<code>{codeText}</code>"
+                text = text.replace(f'`{codeText}`', renderedText)
+        return text
+
     def render_markdown_headers_markups(self, text: str) -> str:
         """Converts markdown header markups to html header markups."""
         if text.startswith("# "):
