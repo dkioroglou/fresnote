@@ -239,15 +239,15 @@ class InlineRenderers:
                 try:
                     project, filePath = res.split(',')
                     project = project.strip()
-                    filePath = filePath.strip()
+                    filename = filePath.strip()
                 except Exception:
-                    text = '<span style="color:#FF0000";>Include-file markups should have: "project,filePath"<br>'+text
+                    text = '<span style="color:#FF0000";>Include-file markups should have: "project,filename"<br>'+text
                     return text
 
                 try:
                     notes = fresnote.classes.Notebook(project, self.configName)
                     projectPath = Path(notes.projectPath)
-                    filePath = projectPath.joinpath(filePath)
+                    filePath = projectPath.joinpath(filename)
                 except Exception:
                     text = '<span style="color:#FF0000";>Project does not exist: {project}<br>'+text
                     return text
@@ -256,7 +256,7 @@ class InlineRenderers:
                     text = '<span style="color:#FF0000";>Included file does not exist: {filePath}<br>'+text
                     return text
 
-                sectionIndicator = f'<span class="badge badge-pill badge-info">file: {filePath}</span><hr>'
+                sectionIndicator = f'<span class="badge badge-pill badge-info">{project}-file: {filename}</span><hr>'
                 fileContent = open(filePath, encoding="utf-8").read()
                 renderedText = sectionIndicator+"<p><pre>"+fileContent+"</pre></p><hr>"
                 text = text.replace(f'\\include-file{{{res}}}', renderedText)

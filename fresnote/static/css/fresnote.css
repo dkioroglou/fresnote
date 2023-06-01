@@ -81,6 +81,7 @@ p {
     margin: -3px auto;
 }
 
+
 @keyframes spinning {
     from {
         transform: rotate(0deg)
@@ -126,7 +127,7 @@ ul li {
 }
 
 .fresnote-section-title {
-    font-size: 1.4em; !important;
+    font-size: 1.3em; !important;
     color: #a25f5f;
 }
 
