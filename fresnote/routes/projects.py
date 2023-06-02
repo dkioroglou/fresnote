@@ -281,7 +281,19 @@ def get_path(project, directory, filename):
         return errorText, 400 
 
     fileExtention = Path(filePath).suffix
-    docExtensions = ['.docx', '.doc', '.xls', '.xlsx', '.csv', '.tsv', '.tex', '.bib', '.txt']
+    docExtensions = ['.docx', 
+                     '.doc', 
+                     '.xls', 
+                     '.xlsx',
+                     '.csv',
+                     '.tsv',
+                     '.tex', 
+                     '.bib',
+                     '.txt',
+                     '.odt',
+                     '.ods',
+                     '.odp'
+                     ]
 
     if fileExtention in docExtensions:
         OSname = system().lower()
