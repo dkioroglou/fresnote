@@ -1,0 +1,392 @@
+@import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&display=swap');
+
+
+body {
+    background-color: #ecebe5;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 1.07em;
+    color: #6a6a6a;
+}
+
+pre {
+    font-family: 'Roboto Mono' !important;
+    font-size: .85em;
+    line-height: 1.4;
+    color: #5D91B4;
+}
+
+p {
+  line-height: 1.5;
+  font-size: 0.9em;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.btn-outline-light {
+    background-color: #a25f5f;
+    border-color: #a25f5f;
+}
+
+.btn-outline-light:hover {
+    color: #a25f5f;
+    background-color: #918383;
+    border-color: #918383;
+}
+
+.badge-info {
+    background-color: #a25f5f;
+}
+
+.badge-dark {
+    float: right;
+}
+
+.card-header {
+    background-color: rgb(5,71,96,.04) !important;
+}
+
+.katex-math-inline {
+    font-size: 1.1em;
+    color: #a25f5f;
+}
+
+.katex-math-equation {
+    font-size: 1em;
+    color: #a25f5f;
+}
+
+.fresnote-script-button {
+    padding: 0% 1%;
+}
+
+.fresnote-spinner-text {
+    display: inline-block;
+    position: relative;
+    top: 2px;
+}
+
+.fresnote-spinner {
+    display: inline-block;
+    height: 15px;
+    width: 15px;
+    border: 2px solid;
+    border-color: #a25f5f transparent #a25f5f transparent;
+    border-radius: 110%;
+    animation: spinning 1.3s linear infinite;
+    position: relative;
+    margin: -3px auto;
+}
+
+
+@keyframes spinning {
+    from {
+        transform: rotate(0deg)
+    }
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+
+h3, .h3 {
+    font-size: 1.2em; !important;
+    font-weight: 300 !important;
+    line-height: 1.4;
+    color: #a25f5f;
+}
+
+h4, .h4 {
+    font-size: 1em; !important;
+    font-weight: 300 !important;
+    color: #a25f5f;
+}
+
+h2, .h2 {
+    font-size: 1.5em; !important;
+    font-weight: 300 !important;
+    color: #a25f5f;
+}
+
+h1, .h1 {
+    font-size: 2.0em; !important;
+    font-weight: 300 !important;
+    color: #a25f5f;
+}
+
+hr {
+  border-top: 2px solid rgb(162 96 96);
+}
+
+
+ul li {
+  font-size: 0.9em; !important;
+}
+
+.fresnote-section-title {
+    font-size: 1.3em; !important;
+    color: #a25f5f;
+}
+
+.ql-editor {
+  white-space: pre-line!important;
+}
+
+#projectSection {
+    font-size: 1.75rem;
+}
+
+#chapterSection {
+    font-size: 1.75rem;
+}
+
+.section {
+    width: 600px;
+}
+
+.tagSection {
+    height: 3rem;
+}
+
+
+#todoIcon {
+  padding-bottom: 3px;
+}
+
+/* This has been set to zero for animation purposes */
+.chapterSectionCard {
+  opacity: 0;
+}
+
+#saveChapterButton {
+    height: 2rem; 
+    border-radius: 12px;
+}
+
+#editChapterButton {
+    height: 2rem; 
+    border-radius: 12px;
+}
+
+#saveNotebookButton {
+    height: 2rem; 
+    border-radius: 12px;
+}
+
+#editNotebookButton {
+    height: 2rem; 
+    border-radius: 12px;
+}
+
+blockquote {
+    padding-left: 1em;
+    border-left: 0.5ex solid #c56e6e;
+    font-size: 0.9em;
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.card-body {
+    border-left: 0.5ex solid #c3aeae;
+}
+
+.card-body#included-section-card-body {
+    border-left: 0ex;
+    border-right: 0.5ex solid #c3aeae;
+}
+
+@media (min-width: 576px) {
+    .h-sm-100 {
+        height: 100%;
+    }
+}
+
+.mybg-light {
+    background-color: #ecebe5;
+}
+
+
+
+a,
+a:hover,
+a:focus {
+    color: #0798b1;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.navbar {
+    padding: 15px 10px;
+    background: #ecebe5;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 20px;
+}
+
+.navbar-btn {
+    box-shadow: none;
+    outline: none !important;
+    border: none;
+}
+
+.line {
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px dashed #ddd;
+    margin: 40px 0;
+}
+
+
+
+/* ---------------------------------------------------
+    List checklist START
+----------------------------------------------------- */
+.task-list-item {
+  list-style-type: none !important;
+}
+
+.task-list-item input[type="checkbox"] {
+  margin: 0 4px 0.25em -20px;
+  vertical-align: middle;
+}
+/* ---------------------------------------------------
+    List checklist END
+----------------------------------------------------- */
+
+
+/* ---------------------------------------------------
+    SIDEBAR STYLE START
+----------------------------------------------------- */
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    /* -250px makes the sidebar to be by default collapsed. */
+    margin-left: -250px;
+    background: #ecebe5;
+    transition: all 0.3s;
+}
+
+#sidebar.active {
+    /* Increasing the marging the more distance for the right side the sidebar will have. */
+    margin-left: 10px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #ecebe5;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+    border-bottom: 1px solid #ecebe5
+}
+
+#sidebar ul p {
+    color: #fff;
+    padding: 10px;
+}
+
+#sidebar ul li a {
+    padding: 10px;
+    font-size: 1.1em;
+    display: block;
+}
+
+#sidebar ul li#sideBarli a:hover {
+    color: #fff;
+    background: #737779;
+}
+
+#sidebar ul li.active>a,
+a[aria-expanded="true"] {
+    color: #fff;
+    background: #afafaf;
+}
+
+a[data-toggle="collapse"] {
+    position: relative;
+}
+
+.dropdown-toggle::after {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
+ul ul a {
+    font-size: 0.9em !important;
+    padding-left: 30px !important;
+    background: #ecebe5;
+}
+
+ul.CTAs {
+    padding: 20px;
+}
+
+ul.CTAs a {
+    text-align: center;
+    font-size: 0.9em !important;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+a.download {
+    background: #fff;
+    color: #7386D5;
+}
+
+a.article,
+a.article:hover {
+    background: #6d7fcc !important;
+    color: #fff !important;
+}
+
+/* ---------------------------------------------------
+    CONTENT STYLE
+----------------------------------------------------- */
+
+#content {
+    width: 100%;
+    padding: 20px;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+/* ---------------------------------------------------
+    MEDIAQUERIES
+----------------------------------------------------- */
+
+@media (max-width: 768px) {
+    #sidebar {
+        /* The one below was the default value. After changes seems not important. */
+        /* margin-left: -250px; */
+
+    }
+    #sidebar.active {
+        /* The one below was the default value. After changes seems not important. */
+        /* margin-left: 0; */
+        /* After changes the value below doesn't see to affect anything. */
+        margin-left: -250px;
+    }
+    #sidebarCollapse span {
+        /* After changes the value below doesn't see to affect anything. */
+        display: none;
+    }
+}
+
+/* ---------------------------------------------------
+    SIDEBAR STYLE END
+----------------------------------------------------- */
