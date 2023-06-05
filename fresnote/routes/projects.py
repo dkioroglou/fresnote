@@ -292,7 +292,9 @@ def get_path(project, directory, filename):
                      '.txt',
                      '.odt',
                      '.ods',
-                     '.odp'
+                     '.odp',
+                     '.ppt',
+                     '.pptx'
                      ]
 
     if fileExtention in docExtensions:

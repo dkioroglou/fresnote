@@ -18,7 +18,12 @@ class InlineRenderers:
                 '.tsv' : 'file-tsv-solid.svg',
                 '.txt' : 'file-txt-solid.svg',
                 '.tex' : 'file-tex-solid.svg',
-                '.bib' : 'file-bib-solid.svg'
+                '.bib' : 'file-bib-solid.svg',
+                '.odt' : 'file-odt-solid.svg',
+                '.ods' : 'file-ods-solid.svg',
+                '.odp' : 'file-odp-solid.svg',
+                '.ppt' : 'file-ppt-solid.svg',
+                '.pptx' : 'file-ppt-solid.svg'
         }
 
     def render_markdown_bold_text_markups(self, text: str) -> str:
