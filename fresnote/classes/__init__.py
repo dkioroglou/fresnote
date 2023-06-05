@@ -520,7 +520,7 @@ class Notebook:
                  query should look like the following:
                  ( col1 LIKE term1 OR ... OR colN LIKE term1) CONNECTOR ( col1 LIKE term2 OR ... OR colN LIKE term2)
             """
-            terms = [t.strip() for t in queryTerm.split(' ')]
+            terms = [t.strip().replace("+", " ") for t in queryTerm.split(' ')]
             query = "SELECT id FROM sections WHERE "
             queryParts = list()
             for term in terms:
