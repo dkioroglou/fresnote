@@ -486,7 +486,7 @@ function editContent(project, sectionID) {
             var tlb_button_link = document.querySelector('#tlb-button-link');
             tlb_button_link.addEventListener('click', function() {
                 var cursorPosition = quill.getSelection(true);
-                quill.insertText(cursorPosition, "\link{}" );
+                quill.insertText(cursorPosition, "\\link{}" );
                 quill.setSelection(cursorPosition.index + 5, 0);
             });
 
@@ -514,7 +514,7 @@ function editContent(project, sectionID) {
             var tlb_button_image = document.querySelector('#tlb-button-image');
             tlb_button_image.addEventListener('click', function() {
                 var cursorPosition = quill.getSelection(true);
-                quill.insertText(cursorPosition, '\img{\nTitle,file,200,100\n}' );
+                quill.insertText(cursorPosition, '\\img{\nTitle,file,200,100\n}' );
                 quill.setSelection(cursorPosition.index + 5, 0);
             });
 
